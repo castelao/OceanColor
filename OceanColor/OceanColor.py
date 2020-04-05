@@ -1,13 +1,19 @@
 """Main module."""
 
+from datetime import datetime, timedelta
+from io import BytesIO
 import json
 import logging
+import multiprocessing as mp
+import random
+import time
 from typing import Any, Dict, Optional, Sequence
 import urllib
 
 import numpy as np
 import pandas as pd
 import requests
+import xarray as xr
 
 
 module_logger = logging.getLogger('OceanColor')
@@ -175,3 +181,65 @@ def read_remote_file(filename, username, password):
         r = session.get(r1.url, auth=(username, password))
         assert r.ok
         return r.content
+
+
+class OceanColorDB(object):
+    """An abstraction of NASA's Ocean Color database
+
+    In the future develop a local cache so it wouldn't need to download more
+    than once the same file.
+    """
+    lock = mp.Lock()
+    time_last_download = datetime(1970, 1, 1)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+
+    def __getitem__(self, key):
+        """
+
+        Maybe use BytesIO?? or ds.compute()?
+        """
+        content = self.remote_content(key)
+        ds = xr.open_dataset(BytesIO(content))
+
+        assert ds.processing_level in ('L2', 'L3 Mapped'), \
+                "I only handle L2 or L3 Mapped"
+        if ds.processing_level == 'L2':
+            # Seems like it can't read groups using BytesIO
+            with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as tmp:
+                tmp.write(content)
+                tmp.flush()
+                geo = xr.open_dataset(tmp.name, group='geophysical_data')
+                nav = xr.open_dataset(tmp.name, group='navigation_data')
+                ds = ds.merge(geo).merge(nav)
+                ds = ds
+        return ds
+
+
+    def remote_content(self, filename, t_min=3, t_random=4):
+        """Read a remote file with minimum time between downloads
+
+        NASA monitors the downloads and excessive activity is temporarily
+        banned, so this function guarantees a minimum time between downloads
+        to avoid ovoerloading NASA servers.
+        """
+        self.lock.acquire()
+        module_logger.debug('remote_content aquired lock')
+        dt = t_min + round(random.random() * t_random, 2)
+        next_time = self.time_last_download + timedelta(seconds=(dt))
+        waiting_time = max((next_time - datetime.now()).total_seconds(), 0)
+        module_logger.debug("Waiting {} seconds before downloading.".format(
+            waiting_time))
+        time.sleep(waiting_time)
+        try:
+            module_logger.debug("Downloading: {}".format(filename))
+            content = read_remote_file(filename, self.username, self.password)
+        finally:
+            self.time_last_download = datetime.now()
+            module_logger.debug('remote_content releasing lock')
+            self.lock.release()
+
+        return content
