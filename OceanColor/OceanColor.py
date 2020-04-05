@@ -7,6 +7,7 @@ import urllib
 
 import numpy as np
 import pandas as pd
+import requests
 
 
 module_logger = logging.getLogger('OceanColor')
@@ -157,3 +158,20 @@ def bloom_filter(track: Sequence[Dict],
     filenames = nasa_file_search(sensor, dtype, sdate, edate, search)
     for f in filenames:
         yield f
+
+
+def read_remote_file(filename, username, password):
+    """Return the binary content of a NASA data file
+
+    NASA now requires authentication to access its data files, thus a username
+    and a password.
+    """
+    url_base = "https://oceandata.sci.gsfc.nasa.gov/ob/getfile/"
+    url = urllib.request.urljoin(url_base, filename)
+
+    with requests.Session() as session:
+        session.auth = (username, password)
+        r1 = session.request('get', url)
+        r = session.get(r1.url, auth=(username, password))
+        assert r.ok
+        return r.content
