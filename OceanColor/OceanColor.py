@@ -243,3 +243,87 @@ class OceanColorDB(object):
             self.lock.release()
 
         return content
+
+
+def inrange_L3m(track: Any,
+                ds: Any,
+                dL_tol: Any,
+                dt_tol: Any):
+    """Return all satellite data in range of some profile
+
+    For a given data frame of profiles, return all satellite data, including
+    lat, lon, dL (distance), and dt (difference in time) in respect of all
+    profiles.
+
+    Since L3M product is daily means, dt=0 means a profile on the same day of
+    the satellite measurement, while + 3hrs means the hour 3 of the following
+    day. Further, dt_tol=0 limits to satellite mean for the same day of the
+    profile, while dt_tol=12 limits to the day of the profile plus the previous
+    day if spray measured in the morning or following day if measurement was
+    done in the afternoon/evening.
+
+    IDEA: Maybe crop nc by min/max lat and lon before estimate the distances.
+    """
+
+    assert ds.processing_level == 'L3 Mapped', "inrange_L3M() requires L3 Mapped satellite data"
+
+    # Removing the Zulu part of the date definition. Better double
+    #   check if it is UTC and then remove the tz.
+    time_coverage_start = pd.to_datetime(
+            ds.time_coverage_start.replace('Z','',))
+    time_coverage_end = pd.to_datetime(
+            ds.time_coverage_end.replace('Z','',))
+
+    time_reference = (time_coverage_start + \
+            (time_coverage_end - time_coverage_start)/2.)
+
+    idx = (track.time >= (time_coverage_start - dt_tol)) & \
+            (track.time <= (time_coverage_end + dt_tol))
+    # Profiles possibly in the time window covered by the file
+    subset = track[idx].copy()
+
+    # Using 110 to get a slightly larger deg_tol
+    deg_tol = dL_tol / 110e3
+    ds = ds.isel(lat = (ds.lat >= subset.lat.min() - deg_tol))
+    ds = ds.isel(lat = (ds.lat <= subset.lat.max() + deg_tol))
+
+    Lon, Lat = np.meshgrid(ds.lon[:], ds.lat[:])
+
+    varnames = [v for v in ds.variables.keys()
+            if ds.variables[v].dims == ('lat', 'lon')]
+    ds = ds[varnames]
+
+    output = pd.DataFrame()
+    g = Geod(ellps='WGS84') # Use Clarke 1966 ellipsoid.
+    # Maybe filter
+    for i, p in subset.iterrows():
+        # Only sat. Chl within a certain distance.
+        dL = g.inv(Lon,
+                   Lat,
+                   np.ones(Lon.shape) * p.lon,
+                   np.ones(Lat.shape) * p.lat
+                   )[2]
+        idx = dL <= dL_tol
+        tmp = {'profile_id': i,
+               'lon': Lon[idx],
+               'lat': Lat[idx],
+               'dL': dL[idx]}
+        for v in varnames:
+            tmp[v] = ds[v].data[idx]
+
+        # Overlap between daily averages can result in more than 2 images
+        # Any time inside the coverage range is considered dt=0
+        # if p.datetime < time_coverage_start:
+        #     tmp['dt'] = p.datetime - time_coverage_start
+        # elif p.datetime > time_coverage_end:
+        #     tmp['dt'] = p.datetime - time_coverage_end
+        # else:
+        #     tmp['dt'] = pd.Timedelta(0)
+        tmp['dt'] = time_reference - p.time
+
+        tmp = pd.DataFrame(tmp)
+        # Remove rows where all varnames are NaN
+        tmp = tmp[(~tmp[varnames].isna()).any(axis='columns')]
+        output = output.append(tmp, ignore_index=True)
+
+    return output
