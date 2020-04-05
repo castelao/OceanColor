@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 import urllib
 
 import numpy as np
@@ -116,3 +116,44 @@ def nasa_file_search(sensor: str,
         output = filenames[f]
         output['filename'] = f
         yield output
+
+
+def search_criteria(**kwargs):
+    """Build a searching criteria
+
+    Dummy function, just a place holder for now.
+    """
+    assert kwargs['sensor'] in ['aqua', 'terra']
+    assert kwargs['dtype'] == 'L3m'
+    return ['*DAY_CHL_chlor_a_4km*']
+
+
+def bloom_filter(track: Sequence[Dict],
+                 sensor: [Sequence[str], str],
+                 dtype:str,
+                 dt_tol: Optional[Any] = None):
+    """Filter only satellite files with potential matches
+
+    It can contain false positives, but must not allow false negatives, i.e.
+    files excluded here are guarantee to not contain any mathcup, so it
+    reduces the searching space for any potential matchup.
+
+    Note
+    ----
+    - Include time and space resolution (like daily, and 4km or higest)
+    - It should have the option to run with a local cache. Somehow download
+      once a full list (or update a previous list) and work on that.
+    - Later include criteria by geolimits.
+    """
+    if isinstance(sensor, list):
+        for s in sensor:
+            filenames = bloom_filter(track, s, dtype, dt_tol)
+            yield from filenames
+        return
+
+    sdate = np.datetime64(track.time.min() - dt_tol)
+    edate = np.datetime64(track.time.max() + dt_tol)
+    search = search_criteria(sensor=sensor, dtype=dtype)
+    filenames = nasa_file_search(sensor, dtype, sdate, edate, search)
+    for f in filenames:
+        yield f
