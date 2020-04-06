@@ -249,12 +249,34 @@ def inrange_L3m(track: Any,
                 ds: Any,
                 dL_tol: Any,
                 dt_tol: Any):
-    """Return all satellite data in range of some profile
+    """All satellite pixels within a tolerance around profiles from a track
 
     For a given data frame of profiles, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
     profiles.
 
+    Parameters
+    ----------
+    track: pd.DataFrame
+        A collection of waypoints containing {time, lat, lon}. The index on
+        this DataFrame will be used as the reference on for the output.
+
+    ds: xr.Dataset
+        L3m composite.
+
+    dL_tol: float
+        Distance in meters around a waypoint to be considered a matchup.
+
+    dt_tol: np.timedelta64
+        Time difference to be considered a matchup.
+
+
+    Returns
+    -------
+    matchup: pd.DataFrame
+
+    Notes
+    -----
     Since L3M product is daily means, dt=0 means a profile on the same day of
     the satellite measurement, while + 3hrs means the hour 3 of the following
     day. Further, dt_tol=0 limits to satellite mean for the same day of the
