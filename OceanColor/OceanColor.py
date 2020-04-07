@@ -246,6 +246,17 @@ class OceanColorDB(object):
         return content
 
 
+def inrange(track, ds, dL_tol, dt_tol):
+    """Search for all pixels in a time/space range of a track
+
+    This is the general function that will choose which procedure to apply
+    according to the processing level of the image, since they are structured
+    in different projections.
+    """
+    assert ds.processing_level == 'L3 Mapped'
+    return inrange_L3m(track, ds, dL_tol, dt_tol)
+
+
 def inrange_L3m(track: Any,
                 ds: Any,
                 dL_tol: Any,
