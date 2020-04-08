@@ -343,8 +343,6 @@ def inrange_L3m(track: Any,
                'lon': Lon[idx],
                'lat': Lat[idx],
                'dL': dL[idx]}
-        for v in varnames:
-            tmp[v] = ds[v].data[idx]
 
         # Overlap between daily averages can result in more than 2 images
         # Any time inside the coverage range is considered dt=0
@@ -355,6 +353,9 @@ def inrange_L3m(track: Any,
         # else:
         #     tmp['dt'] = pd.Timedelta(0)
         tmp['dt'] = time_reference - p.time
+
+        for v in varnames:
+            tmp[v] = ds[v].data[idx]
 
         tmp = pd.DataFrame(tmp)
         # Remove rows where all varnames are NaN
