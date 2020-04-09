@@ -390,7 +390,6 @@ class InRange(object):
     def next(self):
         output = self.queue.get()
         if isinstance(output, str) and (output == 'END'):
-            self.queue.put('END')
             raise StopIteration
         return output
 
