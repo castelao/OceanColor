@@ -254,8 +254,100 @@ def inrange(track, ds, dL_tol, dt_tol):
     according to the processing level of the image, since they are structured
     in different projections.
     """
-    assert ds.processing_level == 'L3 Mapped'
-    return inrange_L3m(track, ds, dL_tol, dt_tol)
+    assert ds.processing_level in ('L2', 'L3 Mapped')
+    if ds.processing_level == 'L2':
+        return inrange_L2(track, ds, dL_tol, dt_tol)
+    elif ds.processing_level == 'L3 Mapped':
+        return inrange_L3m(track, ds, dL_tol, dt_tol)
+
+
+def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
+    """All satellite L2 pixels in range of a track
+
+    For a given data frame of waypoints, return all satellite data, including
+    lat, lon, dL (distance), and dt (difference in time) in respect of all
+    waypoints.
+
+    Parameters
+    ----------
+    track: pd.DataFrame
+        A collection of waypoints containing {time, lat, lon}. The index on
+        this DataFrame will be used as the reference on for the output.
+
+    ds: xr.Dataset
+        L3m composite.
+
+    dL_tol: float
+        Distance in meters around a waypoint to be considered a matchup.
+
+    dt_tol: np.timedelta64
+        Time difference to be considered a matchup.
+
+    Returns
+    -------
+    matchup: pd.DataFrame
+    """
+    assert ds.processing_level == 'L2', "inrange_L2() requires L2 satellite data"
+    output = pd.DataFrame()
+
+    # Removing the Zulu part of the date definition. Better double
+    #   check if it is UTC and then remove the tz.
+    time_coverage_start = pd.to_datetime(
+            ds.time_coverage_start.replace('Z','',))
+    time_coverage_end = pd.to_datetime(
+            ds.time_coverage_end.replace('Z','',))
+
+    idx = (track.time >= (time_coverage_start - dt_tol)) & \
+            (track.time <= (time_coverage_end + dt_tol))
+    # Profiles possibly in the time window covered by the file
+    subset = track[idx].copy()
+
+    assert ds.pixel_control_points.shape == ds.pixels_per_line.shape
+    ds = ds.swap_dims({'pixel_control_points': 'pixels_per_line'})
+
+    # ==== Restrict to lines and columns within the latitude range ====
+    # Using 100 to get a larger deg_tol
+    deg_tol = dL_tol / 100e3
+    idx = ((ds.latitude >= (subset.lat.min() - deg_tol))
+            & (ds.latitude <= (subset.lat.max() + deg_tol)))
+    if not idx.any():
+        return output
+    ds = ds.isel(pixels_per_line=idx.any(dim='number_of_lines'))
+    ds = ds.isel(number_of_lines=idx.any(dim='pixels_per_line'))
+
+    varnames = [v for v in ds.variables.keys()
+            if ds.variables[v].dims == ('number_of_lines', 'pixels_per_line')]
+    varnames = [v for v in varnames if v not in ('latitude', 'longitude')]
+    #ds = ds[varnames]
+
+    g = Geod(ellps='WGS84') # Use Clarke 1966 ellipsoid.
+    assert ds.time.dims == ('number_of_lines',), "Assume time by n of lines"
+    for i, p in subset.iterrows():
+        for l, grp in ds.groupby('number_of_lines'):
+            # Only sat. Chl within a certain distance.
+            dL = g.inv(grp.longitude.data,
+                       grp.latitude.data,
+                       np.ones(grp.longitude.shape) * p.lon,
+                       np.ones(grp.latitude.shape) * p.lat
+                       )[2]
+            idx = dL <= dL_tol
+            if idx.any():
+                tmp = {'waypoint_id': i,
+                       'lon': grp.longitude.data[idx],
+                       'lat': grp.latitude.data[idx],
+                       'dL': dL[idx],
+                       'dt': pd.to_datetime(grp.time.data) - p.time
+                       }
+
+                for v in varnames:
+                    tmp[v] = grp[v].data[idx]
+
+                tmp = pd.DataFrame(tmp)
+                # Remove rows where all varnames are NaN
+                tmp = tmp[(~tmp[varnames].isna()).any(axis='columns')]
+                output = output.append(tmp, ignore_index=True)
+
+    return output
 
 
 def inrange_L3m(track: Any,
