@@ -358,7 +358,7 @@ def inrange_L3m(track: Any,
 
     For a given data frame of profiles, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
-    profiles.
+    waypoints.
 
     Parameters
     ----------
@@ -431,7 +431,7 @@ def inrange_L3m(track: Any,
                    np.ones(Lat.shape) * p.lat
                    )[2]
         idx = dL <= dL_tol
-        tmp = {'profile_id': i,
+        tmp = {'waypoint_id': i,
                'lon': Lon[idx],
                'lat': Lat[idx],
                'dL': dL[idx]}
