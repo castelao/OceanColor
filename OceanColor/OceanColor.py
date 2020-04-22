@@ -256,8 +256,10 @@ def inrange(track, ds, dL_tol, dt_tol):
     """
     assert ds.processing_level in ('L2', 'L3 Mapped')
     if ds.processing_level == 'L2':
+        module_logger.debug("processing_level L2, using inrange_L2")
         return inrange_L2(track, ds, dL_tol, dt_tol)
     elif ds.processing_level == 'L3 Mapped':
+        module_logger.debug("processing_level L3 mapped, using inrange_L3m")
         return inrange_L3m(track, ds, dL_tol, dt_tol)
 
 
