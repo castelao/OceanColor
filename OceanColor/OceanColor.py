@@ -356,9 +356,9 @@ def inrange_L3m(track: Any,
                 ds: Any,
                 dL_tol: Any,
                 dt_tol: Any):
-    """All satellite pixels within a tolerance around profiles from a track
+    """All satellite L3 mapped pixels in range of a track
 
-    For a given data frame of profiles, return all satellite data, including
+    For a given data frame of waypoints, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
     waypoints.
 
@@ -392,9 +392,31 @@ def inrange_L3m(track: Any,
     done in the afternoon/evening.
 
     IDEA: Maybe crop nc by min/max lat and lon before estimate the distances.
-    """
 
-    assert ds.processing_level == 'L3 Mapped', "inrange_L3M() requires L3 Mapped satellite data"
+
+
+    Return all satellite data in range of some profile
+
+       For a given data frame of profiles, return all satellite data,
+         including lat, lon, dL (distance), and dt (difference in time)
+         in respect of all profiles.
+
+       Since L3M product is daily means, dt=0 means a profile on the same day
+         of the satellite measurement, while + 3hrs means the hour 3 of the
+         following day. Further, dt_tol=0 limits to satellite mean for the
+         same day of the profile, while dt_tol=12 limits to the day of the
+         profile plus the previous day if spray measured in the morning or
+         following day if measurement was done in the afternoon/evening.
+
+         IDEA: Maybe crop nc by min/max lat and lon before estimate the
+           distances.
+    """
+    #    if dt_tol is None:
+    #    dt_tol = pd.to_timedelta(0)
+    #elif isinstance(dt_tol, datetime):
+    #    dt_tol = pd.to_timedelta(dt_tol)
+
+    assert ds.processing_level == 'L3 Mapped', "inrange_L3m() requires L3 Mapped satellite data"
 
     # Removing the Zulu part of the date definition. Better double
     #   check if it is UTC and then remove the tz.
@@ -438,6 +460,8 @@ def inrange_L3m(track: Any,
                'lat': Lat[idx],
                'dL': dL[idx].astype('i')}
 
+        # What to do if idx is none? Need to do something here and stop earlier
+
         # Overlap between daily averages can result in more than 2 images
         # Any time inside the coverage range is considered dt=0
         # if p.datetime < time_coverage_start:
@@ -452,6 +476,7 @@ def inrange_L3m(track: Any,
             tmp[v] = ds[v].data[idx]
 
         tmp = pd.DataFrame(tmp)
+        # tmp.dropna(inplace=True)
         # Remove rows where all varnames are NaN
         tmp = tmp[(~tmp[varnames].isna()).any(axis='columns')]
         output = output.append(tmp, ignore_index=True)
