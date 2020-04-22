@@ -335,7 +335,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
                 tmp = {'waypoint_id': i,
                        'lon': grp.longitude.data[idx],
                        'lat': grp.latitude.data[idx],
-                       'dL': dL[idx],
+                       'dL': dL[idx].astype('i'),
                        'dt': pd.to_datetime(grp.time.data) - p.time
                        }
 
@@ -434,7 +434,7 @@ def inrange_L3m(track: Any,
         tmp = {'waypoint_id': i,
                'lon': Lon[idx],
                'lat': Lat[idx],
-               'dL': dL[idx]}
+               'dL': dL[idx].astype('i')}
 
         # Overlap between daily averages can result in more than 2 images
         # Any time inside the coverage range is considered dt=0
