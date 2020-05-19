@@ -10,3 +10,8 @@ Chlorophyll measurements from Spray underwater glider on the California Coast,
 but it could be used for any given time, lat, lon, and acceptance window.
 
 * Free software: MIT license
+
+Alternatives
+------------
+
+* `pyModis <https://github.com/lucadelu/pyModis>`_
