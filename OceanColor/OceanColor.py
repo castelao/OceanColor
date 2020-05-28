@@ -8,6 +8,7 @@ import multiprocessing as mp
 import os
 import random
 import re
+import tempfile
 import time
 from typing import Any, Dict, Optional, Sequence
 import urllib
@@ -305,6 +306,21 @@ class OceanColorDB(object):
 
     In the future develop a local cache so it wouldn't need to download more
     than once the same file.
+
+    Examples
+    --------
+    >>> db = OceanColorDB(username, password)
+    >>> db.backend = FileSystem('./')
+    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    >>> ds.attrs
+
+    ToDo
+    ----
+    - Generalize the backend entry. The idea in the future is to create other
+      backends like S3.
+    - Think about the best way to define the backend. Maybe add an optional
+      parameter path, which if available is used to define the backend as a
+      FileSystem.
     """
     lock = mp.Lock()
     time_last_download = datetime(1970, 1, 1)
@@ -313,26 +329,37 @@ class OceanColorDB(object):
         self.username = username
         self.password = password
 
-
     def __getitem__(self, key):
         """
 
         Maybe use BytesIO?? or ds.compute()?
         """
-        content = self.remote_content(key)
-        ds = xr.open_dataset(BytesIO(content))
-
-        assert ds.processing_level in ('L2', 'L3 Mapped'), \
-                "I only handle L2 or L3 Mapped"
-        if ds.processing_level == 'L2':
+        try:
+            ds = self.backend[key]
+            module_logger.debug("Reading from backend: {}".format(key))
+        except KeyError:
+            module_logger.debug("Reading from Ocean Color: {}".format(key))
+            # Probably move this reading from remote to another function
+            content = self.remote_content(key)
+            # ds = xr.open_dataset(BytesIO(content))
             # Seems like it can't read groups using BytesIO
             with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as tmp:
                 tmp.write(content)
                 tmp.flush()
-                geo = xr.open_dataset(tmp.name, group='geophysical_data')
-                nav = xr.open_dataset(tmp.name, group='navigation_data')
-                ds = ds.merge(geo).merge(nav)
-                ds = ds
+
+                ds = xr.open_dataset(tmp.name)
+
+                assert ds.processing_level in ('L2', 'L3 Mapped'), "I only handle L2 or L3 Mapped"
+                if ds.processing_level == 'L2':
+                    geo = xr.open_dataset(tmp.name, group='geophysical_data')
+                    ds = ds.merge(geo)
+                    nav = xr.open_dataset(tmp.name, group='navigation_data')
+                    ds = ds.merge(nav)
+                    # Maybe include full scan line into ds
+                    sline = xr.open_dataset(tmp.name, group='scan_line_attributes')
+                    ds['time'] = (sline - 1970).year.astype('datetime64[Y]') + sline.day -np.timedelta64(1, 'D') + sline.msec
+                    ds = ds.rename({"latitude": "lat", "longitude": "lon"})
+            self.backend[key] = ds
         return ds
 
 
