@@ -7,6 +7,7 @@ import logging
 import multiprocessing as mp
 import os
 import random
+import re
 import time
 from typing import Any, Dict, Optional, Sequence
 import urllib
@@ -185,6 +186,118 @@ def read_remote_file(filename, username, password):
         r = session.get(r1.url, auth=(username, password))
         assert r.ok
         return r.content
+
+
+# db.backend
+class FileSystem(object):
+    """Backend for OceanColorDB based on files and directories
+
+    A file system backend for OceanColorDB to save the data files in
+    directories. Distribute the files in a directory system close to the one
+    in the OceanColor website, otherwise it could pile more than the OS can
+    hold in the same directory.
+
+    ToDo
+    ----
+    Need to create some function that understands the filename syntax so that
+    it can extract level of processing, platform and at least year so that
+    the files can be split in multiple subdirectories, otherwise it can blow
+    the contents limit for the operational system. Probably around several
+    hundreds of files in the same directory.
+    """
+    def __init__(self, root):
+        assert os.path.isdir(root)
+        self.root = os.path.abspath(root)
+
+    def __getitem__(self, key):
+        filename = self.path(key)
+        try:
+            ds = xr.open_dataset(filename)
+        except FileNotFoundError:
+            raise KeyError
+        return ds
+
+    def __setitem__(self, key, ds):
+        assert isinstance(ds, xr.Dataset)
+        filename = self.path(key)
+        d = os.path.dirname(filename)
+        if not os.path.exists(d):
+            module_logger.debug("Creating missing directory: {}".format(d))
+            os.makedirs(d)
+        # ds.to_netcdf("{}.nc".format(filename))
+        ds.to_netcdf(filename)
+
+    def path(self, filename):
+        return os.path.join(self.root, Filename(filename).path)
+
+
+class Filename(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.attrs = parse_filename(filename)
+
+    @property
+    def mission(self):
+        attrs = self.attrs
+
+        if attrs["platform"] == "S":
+            return "SeaWIFS"
+        elif attrs["platform"] == "A":
+            return "MODIS-Aqua"
+        elif attrs["platform"] == "T":
+            return "MODIS-Terra"
+        elif attrs["platform"] == "V":
+            if attrs["instrument"] == "JPSS1":
+                return "VIIRS-JPSS1"
+            elif attrs["instrument"] == "SNPP":
+                return "VIIRS-SNPP"
+
+    @property
+    def dirname(self):
+        path = os.path.join(self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"])
+        return path
+
+    @property
+    def path(self):
+        return os.path.join(self.dirname, self.filename)
+
+
+
+def parse_filename(filename):
+    """Parse an OceanColor data filename
+
+    Parse filenames to extract information like the date or platform related
+    to the given filename.
+
+    Parameters
+    ----------
+    filename : str
+        An Ocean Color dataset filename.
+
+    Notes
+    -----
+    Examples of possible files:
+      - A2011010000000.L2_LAC_OC.nc
+      - T2004006.L3m_DAY_CHL_chlor_a_4km.nc
+      - V2018007000000.L2_SNPP_OC.nc
+      - V2015009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc
+      - V2018006230000.L2_JPSS1_OC.nc
+    """
+    rule = """
+        (?P<platform>[A|T|V])
+        (?P<year>\d{4})
+        (?P<doy>\d{3})
+        (?P<time>\d+)?
+        \.
+        (?P<mode>(L2)|(L3m))
+        _
+        .*?
+        (?P<instrument>(?:SNPP)|(?:JPSS1))?
+        .*?
+        .nc
+        """
+    output = re.match(rule, filename, re.VERBOSE).groupdict()
+    return output
 
 
 class OceanColorDB(object):
