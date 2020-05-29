@@ -136,9 +136,23 @@ def search_criteria(**kwargs):
 
     Dummy function, just a place holder for now.
     """
-    assert kwargs['sensor'] in ['aqua', 'terra']
-    assert kwargs['dtype'] == 'L3m'
-    return ['*DAY_CHL_chlor_a_4km*']
+    assert kwargs['sensor'] in ['seawifs', 'aqua', 'terra', 'snpp']
+    assert kwargs['dtype'] in ('L2', 'L3m')
+    if kwargs['sensor'] == 'seawifs':
+        if kwargs['dtype'] == 'L2':
+            criteria = ['*L2_GAC_OC.nc']
+        elif kwargs['dtype'] == 'L3m':
+            criteria = ['*DAY_CHL_chlor_a_9km*']
+    elif kwargs['sensor'] == 'snpp':
+        if kwargs['dtype'] == 'L2':
+            criteria = ['*JPSS1_OC.nc']
+        elif kwargs['dtype'] == 'L3m':
+            criteria = ['*DAY_SNPP_CHL_chlor_a_4km.nc']
+    elif kwargs['dtype'] == 'L2':
+        criteria = ['*L2_LAC_OC.nc']
+    elif kwargs['dtype'] == 'L3m':
+        criteria = ['*DAY_CHL_chlor_a_4km*']
+    return criteria
 
 
 def bloom_filter(track: Sequence[Dict],
@@ -278,24 +292,25 @@ def parse_filename(filename):
     Notes
     -----
     Examples of possible files:
-      - A2011010000000.L2_LAC_OC.nc
-      - T2004006.L3m_DAY_CHL_chlor_a_4km.nc
+      - S2002006003729.L2_[GAC_IOP|GAC_OC|MLAC_OC].nc
+      - S2001006.L3m_DAY_[CHL_chlor_a|CHL_chl_ocx|ZLEE_Zeu_lee]_9km.nc
+      - A2011010000000.L2[_LAC_OC|_LAC_IOP|SST|SST4].nc
+      - T2004006.L3m[_DAY_CHL_chlor_a|_DAY_CHL_chl_ocx]_[4|9]km.nc
       - V2018007000000.L2_SNPP_OC.nc
       - V2015009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc
       - V2018006230000.L2_JPSS1_OC.nc
     """
     rule = """
-        (?P<platform>[A|T|V])
+        (?P<platform>[S|A|T|V])
         (?P<year>\d{4})
         (?P<doy>\d{3})
         (?P<time>\d+)?
         \.
         (?P<mode>(L2)|(L3m))
-        _
+        (?:_DAY)?
+        _ (?P<instrument>(?:SNPP)|(?:JPSS1))?
         .*?
-        (?P<instrument>(?:SNPP)|(?:JPSS1))?
-        .*?
-        .nc
+        \.nc
         """
     output = re.match(rule, filename, re.VERBOSE).groupdict()
     return output
