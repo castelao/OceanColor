@@ -378,7 +378,7 @@ class OceanColorDB(object):
         return ds
 
 
-    def remote_content(self, filename, t_min=3, t_random=4):
+    def remote_content(self, filename, t_min=4, t_random=4):
         """Read a remote file with minimum time between downloads
 
         NASA monitors the downloads and excessive activity is temporarily
