@@ -76,7 +76,11 @@ def nasa_file_search(sensor: str,
         edate = np.datetime64('now')
 
     # Split in blocks if the range is too long.
-    block = np.timedelta64(200, 'D')
+    if dtype in ('L0', 'L1', 'L2'):
+        max_dt = 60
+    else:
+        max_dt = 200
+    block = np.timedelta64(max_dt, 'D')
     if (edate - sdate) > block:
         for start in np.arange(sdate, edate, block):
             end = start + block - np.timedelta64(1, 'D')
