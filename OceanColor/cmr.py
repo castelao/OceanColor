@@ -4,6 +4,7 @@
 from typing import Any, Dict, Optional, Sequence
 
 from numpy import datetime64, datetime_as_string
+import re
 import requests
 
 
@@ -106,8 +107,7 @@ def search_criteria(**kwargs):
 
     """
     assert kwargs["sensor"] in ["seawifs", "aqua", "terra", "snpp"]
-    # assert kwargs['dtype'] in ('L2', 'L3m')
-    assert kwargs["dtype"] in ("L2")
+    assert kwargs["dtype"] in ("L2", "L3m")
 
     if kwargs["sensor"] == "seawifs":
         if kwargs["dtype"] == "L2":
@@ -119,7 +119,11 @@ def search_criteria(**kwargs):
         if kwargs["dtype"] == "L2":
             criteria = {"short_name": "MODISA_L2_OC", "provider": "OB_DAAC"}
         elif kwargs["dtype"] == "L3m":
-            criteria = {"short_name": "MODISA_L3m_CHL", "provider": "OB_DAAC"}
+            criteria = {
+                "short_name": "MODISA_L3m_CHL",
+                "provider": "OB_DAAC",
+                "search": "DAY_CHL_chlor_a_4km",
+            }
     elif kwargs["sensor"] == "terra":
         if kwargs["dtype"] == "L2":
             criteria = {"short_name": "MODIST_L2_OC", "provider": "OB_DAAC"}
@@ -166,15 +170,20 @@ def bloom_filter(
     stime = datetime64(track.time.min() - dt_tol)
     etime = datetime64(track.time.max() + dt_tol)
 
-    search = search_criteria(sensor=sensor, dtype=dtype)
-    for pn, p in track.iterrows():
+    criteria = search_criteria(sensor=sensor, dtype=dtype)
+    if "search" in criteria:
+        rule = re.compile(criteria["search"])
+    else:
+        rule = None
+    for _, p in track.iterrows():
         temporal = "{},{}".format(
             datetime_as_string(stime, unit="s"),
             datetime_as_string(etime, unit="s"),
         )
         circle = "{},{},{}".format(p.lon, p.lat, dL_tol)
-        for g in granules_search(temporal=temporal, circle=circle, **search):
-            yield g
+        for g in granules_search(temporal=temporal, circle=circle, **criteria):
+            if (rule is None) or rule.search(g):
+                yield g
 
 
 """
