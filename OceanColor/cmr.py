@@ -3,6 +3,7 @@
 
 from typing import Any, Dict, Optional, Sequence
 
+from numpy import datetime64, datetime_as_string
 import requests
 
 
@@ -162,14 +163,14 @@ def bloom_filter(
             yield from filenames
         return
 
-    stime = np.datetime64(track.time.min() - dt_tol)
-    etime = np.datetime64(track.time.max() + dt_tol)
+    stime = datetime64(track.time.min() - dt_tol)
+    etime = datetime64(track.time.max() + dt_tol)
 
     search = search_criteria(sensor=sensor, dtype=dtype)
     for pn, p in track.iterrows():
         temporal = "{},{}".format(
-            np.datetime_as_string(stime, unit="s"),
-            np.datetime_as_string(etime, unit="s"),
+            datetime_as_string(stime, unit="s"),
+            datetime_as_string(etime, unit="s"),
         )
         circle = "{},{},{}".format(p.lon, p.lat, dL_tol)
         for g in granules_search(temporal=temporal, circle=circle, **search):
