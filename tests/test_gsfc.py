@@ -5,7 +5,7 @@
 import pytest
 import numpy as np
 
-from OceanColor.OceanColor import nasa_file_search
+from OceanColor.gsfc import oceandata_file_search
 
 
 def test_nasa_file_search():
@@ -13,7 +13,7 @@ def test_nasa_file_search():
 
     I should expand this into several tests.
     """
-    file_list = nasa_file_search('aqua',
+    file_list = oceandata_file_search('aqua',
                                  'L3m',
                                  np.datetime64('2019-06-01'),
                                  np.datetime64('2019-06-01'),
