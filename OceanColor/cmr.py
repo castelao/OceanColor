@@ -79,6 +79,10 @@ def granules_search(
     profile_lat   (trajectory) float64 34.48
     profile_lon   (trajectory) float64 -126.9
 
+    Notes
+    -----
+    - Should I use 'DIRECT DOWNLOAD' or 'GET DATA' fields and yield URL
+      instead?
     """
     url = "https://cmr.earthdata.nasa.gov/search/granules.umm_json"
 
@@ -94,10 +98,6 @@ def granules_search(
         for r in result["umm"]["DataGranule"]["Identifiers"]:
             if r["IdentifierType"] == "ProducerGranuleId":
                 yield r["Identifier"]
-
-        #     if r['Subtype'] == 'DIRECT DOWNLOAD':
-        # if r['Type'] == 'GET DATA':
-        #    yield (r['URL'])
 
 
 def search_criteria(**kwargs):
