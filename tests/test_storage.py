@@ -5,8 +5,7 @@
 import os
 import pytest
 
-from OceanColor.storage import parse_filename
-from OceanColor.OceanColor import OceanColorDB, FileSystem
+from OceanColor.storage import parse_filename, OceanColorDB, FileSystem
 
 
 def test_parse_filename_AL2():
