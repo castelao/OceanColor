@@ -25,7 +25,7 @@ from .inrange import inrange
 from .storage import FileSystem
 
 
-module_logger = logging.getLogger('OceanColor')
+module_logger = logging.getLogger("OceanColor")
 
 
 class OceanColorDB(object):
@@ -49,6 +49,7 @@ class OceanColorDB(object):
       parameter path, which if available is used to define the backend as a
       FileSystem.
     """
+
     lock = mp.Lock()
     time_last_download = datetime(1970, 1, 1)
 
@@ -70,21 +71,29 @@ class OceanColorDB(object):
             content = self.remote_content(key)
             # ds = xr.open_dataset(BytesIO(content))
             # Seems like it can't read groups using BytesIO
-            with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
                 tmp.write(content)
                 tmp.flush()
 
                 ds = xr.open_dataset(tmp.name)
 
-                assert ds.processing_level in ('L2', 'L3 Mapped'), "I only handle L2 or L3 Mapped"
-                if ds.processing_level == 'L2':
-                    geo = xr.open_dataset(tmp.name, group='geophysical_data')
+                assert ds.processing_level in (
+                    "L2",
+                    "L3 Mapped",
+                ), "I only handle L2 or L3 Mapped"
+                if ds.processing_level == "L2":
+                    geo = xr.open_dataset(tmp.name, group="geophysical_data")
                     ds = ds.merge(geo)
-                    nav = xr.open_dataset(tmp.name, group='navigation_data')
+                    nav = xr.open_dataset(tmp.name, group="navigation_data")
                     ds = ds.merge(nav)
                     # Maybe include full scan line into ds
-                    sline = xr.open_dataset(tmp.name, group='scan_line_attributes')
-                    ds['time'] = (sline - 1970).year.astype('datetime64[Y]') + sline.day -np.timedelta64(1, 'D') + sline.msec
+                    sline = xr.open_dataset(tmp.name, group="scan_line_attributes")
+                    ds["time"] = (
+                        (sline - 1970).year.astype("datetime64[Y]")
+                        + sline.day
+                        - np.timedelta64(1, "D")
+                        + sline.msec
+                    )
                     ds = ds.rename({"latitude": "lat", "longitude": "lon"})
             self.backend[key] = ds
         return ds
@@ -98,19 +107,20 @@ class OceanColorDB(object):
         to avoid ovoerloading NASA servers.
         """
         self.lock.acquire()
-        module_logger.debug('remote_content aquired lock')
+        module_logger.debug("remote_content aquired lock")
         dt = t_min + round(random.random() * t_random, 2)
         next_time = self.time_last_download + timedelta(seconds=(dt))
         waiting_time = max((next_time - datetime.now()).total_seconds(), 0)
-        module_logger.debug("Waiting {} seconds before downloading.".format(
-            waiting_time))
+        module_logger.debug(
+            "Waiting {} seconds before downloading.".format(waiting_time)
+        )
         time.sleep(waiting_time)
         try:
-            module_logger.debug("Downloading: {}".format(filename))
+            module_logger.info("Downloading: {}".format(filename))
             content = read_remote_file(filename, self.username, self.password)
         finally:
             self.time_last_download = datetime.now()
-            module_logger.debug('remote_content releasing lock')
+            module_logger.debug("remote_content releasing lock")
             self.lock.release()
 
         return content
@@ -140,7 +150,7 @@ class InRange(object):
 
     def next(self):
         output = self.queue.get()
-        if isinstance(output, str) and (output == 'END'):
+        if isinstance(output, str) and (output == "END"):
             raise StopIteration
         return output
 
@@ -156,8 +166,10 @@ class InRange(object):
         dL_tol:
         """
         module_logger.debug("Searching for matchups.")
-        self.worker = mp.Process(target=self.scanner,
-                                 args=(self.queue, self.npes, track, sensor, dtype, dt_tol, dL_tol))
+        self.worker = mp.Process(
+            target=self.scanner,
+            args=(self.queue, self.npes, track, sensor, dtype, dt_tol, dL_tol),
+        )
         module_logger.debug("Starting scanner worker.")
         self.worker.start()
 
@@ -180,15 +192,15 @@ class InRange(object):
                     tmp = results.pop(idx.index(True)).get()
                     module_logger.debug("Finished reading another file")
                     if not tmp.empty:
-                        module_logger.debug("Found {} matchs".format(len(tmp)))
+                        module_logger.info("Found {} matchs".format(len(tmp)))
                         queue.put(tmp)
-                module_logger.debug("Getting {}".format(f['filename']))
-                ds = self.db[f['filename']].compute()
+                module_logger.debug("Getting {}".format(f["filename"]))
+                ds = self.db[f["filename"]].compute()
                 results.append(pool.apply_async(inrange, (track, ds, dL_tol, dt_tol)))
             for tmp in (r.get(timeout) for r in results):
                 module_logger.debug("Finished reading another file")
                 if not tmp.empty:
-                    module_logger.debug("Found {} matchs".format(len(tmp)))
+                    module_logger.info("Found {} matchs".format(len(tmp)))
                     queue.put(tmp)
         module_logger.debug("Finished scanning all potential matchups.")
-        queue.put('END')
+        queue.put("END")
