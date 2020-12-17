@@ -52,7 +52,9 @@ def api_walk(url, page_size=25, offset=0, **kwargs):
         yield from api_walk(url, **kwargs)
 
 
-def granules_search(short_name, provider, temporal, circle, sort_key="start_date"):
+def granules_search(
+    short_name, provider, temporal, circle, sort_key="start_date"
+):
     """
 
     Maybe rename to filename_search
@@ -171,10 +173,11 @@ def bloom_filter(
     etime = datetime64(track.time.max() + dt_tol)
 
     criteria = search_criteria(sensor=sensor, dtype=dtype)
-    if "search" in criteria:
-        rule = re.compile(criteria["search"])
-    else:
-        rule = None
+
+    rule = criteria.pop("search", None)
+    if rule is not None:
+        rule = re.compile(rule)
+
     for _, p in track.iterrows():
         temporal = "{},{}".format(
             datetime_as_string(stime, unit="s"),

@@ -19,7 +19,7 @@ def test_api_walk():
     }
 
     for r in api_walk(src, **params):
-        print(r)
+        r
 
 
 def test_granules_search():
@@ -29,7 +29,7 @@ def test_granules_search():
         temporal="2008-01-03,2008-01-05",
         circle="-126.9,34.48,10000",
     ):
-        print(g)
+        g
 
 
 def test_bloom_filter():
@@ -38,12 +38,12 @@ def test_bloom_filter():
     for f in bloom_filter(
         track, sensor="aqua", dtype="L2", dt_tol=timedelta64(36, "h"), dL_tol=10e3
     ):
-        print(f)
+        f
 
     for f in bloom_filter(
         track, sensor="aqua", dtype="L3m", dt_tol=timedelta64(36, "h"), dL_tol=10e3
     ):
-        print(f)
+        f
 
 
 def test_search_criteria():
