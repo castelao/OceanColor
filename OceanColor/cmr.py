@@ -1,11 +1,14 @@
 """Support to NASA's Common Metadata Repository
 """
 
+import logging
 from typing import Any, Dict, Optional, Sequence
 
 from numpy import datetime64, datetime_as_string
 import re
 import requests
+
+module_logger = logging.getLogger(__name__)
 
 
 def api_walk(url, page_size=25, offset=0, **kwargs):
@@ -41,7 +44,10 @@ def api_walk(url, page_size=25, offset=0, **kwargs):
     """
     kwargs["page_size"] = page_size
     kwargs["offset"] = offset
+    module_logger.debug("kwargs: {}".format(kwargs))
     r = requests.get(url, params=kwargs)
+    if r.status_code != 200:
+        module_logger.warning("Failed {}".format(r.status_code))
     assert r.status_code == 200
     content = r.json()
     for item in content["items"]:
