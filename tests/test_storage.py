@@ -2,9 +2,11 @@
 
 """Tests for `OceanColor` package."""
 
+import os
 import pytest
 
 from OceanColor.storage import parse_filename
+from OceanColor.OceanColor import OceanColorDB, FileSystem
 
 
 def test_parse_filename_AL2():
@@ -22,3 +24,10 @@ def test_parse_filename_AL3m():
     ans = {'platform': 'T', 'year': '2004', 'doy': '006', 'time': None, 'mode': 'L3m', 'instrument': None}
     for a in ans:
         assert descriptors[a] == ans[a]
+
+
+def test_OceanColorDB():
+    db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
+    db.backend = FileSystem('./')
+    ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    ds.attrs
