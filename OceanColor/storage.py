@@ -137,9 +137,15 @@ class FileSystem(object):
     the contents limit for the operational system. Probably around several
     hundreds of files in the same directory.
     """
+
     def __init__(self, root):
         module_logger.debug("Using FileSystem as storage at: {}".format(root))
-        assert os.path.isdir(root)
+
+        if not os.path.isdir(root):
+            module_logger.critical(
+                "Invalid path for backend.FileSystem {}".format(root)
+            )
+            raise FileNotFoundError
         self.root = os.path.abspath(root)
 
     def __getitem__(self, key):
