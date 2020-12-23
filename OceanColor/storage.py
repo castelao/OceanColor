@@ -89,6 +89,10 @@ class OceanColorDB(object):
         return ds
 
 
+    def backend(self):
+        raise NotImplementedError("Must define a backend for OceanColorDB")
+
+
     def remote_content(self, filename, t_min=4, t_random=4):
         """Read a remote file with minimum time between downloads
 
