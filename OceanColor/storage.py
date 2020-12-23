@@ -236,7 +236,7 @@ def parse_filename(filename):
       - V2015009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc
       - V2018006230000.L2_JPSS1_OC.nc
     """
-    rule = """
+    rule = r"""
         (?P<platform>[S|A|T|V])
         (?P<year>\d{4})
         (?P<doy>\d{3})
