@@ -15,7 +15,7 @@ from pyproj import Geod
 module_logger = logging.getLogger("OceanColor.inrange")
 
 
-def inrange(track, ds, dL_tol, dt_tol):
+def inrange(track, ds, dL_tol, dt_tol, queue=None):
     """Search for all pixels in a time/space range of a track
 
     This is the general function that will choose which procedure to apply
@@ -25,10 +25,20 @@ def inrange(track, ds, dL_tol, dt_tol):
     assert ds.processing_level in ("L2", "L3 Mapped")
     if ds.processing_level == "L2":
         module_logger.debug("processing_level L2, using inrange_L2")
-        return inrange_L2(track, ds, dL_tol, dt_tol)
+        output = inrange_L2(track, ds, dL_tol, dt_tol)
     elif ds.processing_level == "L3 Mapped":
         module_logger.debug("processing_level L3 mapped, using inrange_L3m")
-        return inrange_L3m(track, ds, dL_tol, dt_tol)
+        output = inrange_L3m(track, ds, dL_tol, dt_tol)
+    else:
+        return
+
+    if queue is None:
+        return output
+    elif output.size > 0:
+        module_logger.info("Found {} matchups in {}".format(len(output.index), ds.product_name))
+        queue.put(output)
+    else:
+        module_logger.info("No matchups from {}".format(ds.product_name))
 
 
 def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
