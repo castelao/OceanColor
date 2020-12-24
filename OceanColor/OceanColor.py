@@ -74,7 +74,7 @@ class InRange(object):
         timeout = 900
         module_logger.debug("Starting scanner, pid: {}".format(os.getpid()))
 
-        filenames = bloom_filter(track, sensor, dtype, dt_tol)
+        filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
         module_logger.debug("Finished bloom filter")
 
         with mp.Pool(processes=npes) as pool:
