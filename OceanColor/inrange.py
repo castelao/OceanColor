@@ -77,8 +77,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     # ==== Restrict to lines and columns within the latitude range ====
     # Using 100 to get a larger deg_tol
     deg_tol = dL_tol / 100e3
-    idx = (ds.latitude >= (subset.lat.min() - deg_tol)) & (
-        ds.latitude <= (subset.lat.max() + deg_tol)
+    idx = (ds.lat >= (subset.lat.min() - deg_tol)) & (
+        ds.lat <= (subset.lat.max() + deg_tol)
     )
     if not idx.any():
         return output
@@ -90,7 +90,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         for v in ds.variables.keys()
         if ds.variables[v].dims == ("number_of_lines", "pixels_per_line")
     ]
-    varnames = [v for v in varnames if v not in ("latitude", "longitude")]
+    varnames = [v for v in varnames if v not in ("lat", "lon")]
     # ds = ds[varnames]
 
     g = Geod(ellps="WGS84")  # Use Clarke 1966 ellipsoid.
@@ -99,18 +99,18 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         for l, grp in ds.groupby("number_of_lines"):
             # Only sat. Chl within a certain distance.
             dL = g.inv(
-                grp.longitude.data,
-                grp.latitude.data,
-                np.ones(grp.longitude.shape) * p.lon,
-                np.ones(grp.latitude.shape) * p.lat,
+                grp.lon.data,
+                grp.lat.data,
+                np.ones(grp.lon.shape) * p.lon,
+                np.ones(grp.lat.shape) * p.lat,
             )[2]
             idx = dL <= dL_tol
             if idx.any():
                 # Save the product_name??
                 tmp = {
                     "waypoint_id": i,
-                    "lon": grp.longitude.data[idx],
-                    "lat": grp.latitude.data[idx],
+                    "lon": grp.lon.data[idx],
+                    "lat": grp.lat.data[idx],
                     "dL": dL[idx].astype("i"),
                     "dt": pd.to_datetime(grp.time.data) - p.time,
                 }
