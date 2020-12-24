@@ -30,11 +30,26 @@ class InRange(object):
        matchup in advance before it is actually requested.
     """
     def __init__(self, username, password, path="./", npes=None):
+        """
+        Parameters
+        ----------
+        username : str
+            NASA's EarthData username
+        password : str
+            NASA's EarthData password
+        path : str, optional
+            Path to save locally NASA's data files
+        npes : int, optional
+            Number of maximum parallel jobs
+        """
+        module_logger.info("Initializing InRange")
         if npes is None:
             npes = int(2 * mp.cpu_count())
         self.npes = npes
+        module_logger.debug("Initializing InRange with npes={}".format(npes))
         n_queue = int(3 * npes)
         self.queue = queue.Queue(int(3 * npes))
+        module_logger.debug("Initializing InRange with a queue size {}".format(npes))
 
         self.db = OceanColorDB(username, password)
         self.db.backend = FileSystem(path)
@@ -50,6 +65,7 @@ class InRange(object):
         if isinstance(output, str) and (output == "END"):
             raise StopIteration
         return output
+
 
     def search(self, track, sensor, dtype, dt_tol, dL_tol):
         """Initiate a new search
@@ -70,9 +86,10 @@ class InRange(object):
         module_logger.debug("Starting scanner worker.")
         self.worker.start()
 
+
     def scanner(self, queue, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
-        module_logger.debug("Starting scanner, pid: {}".format(os.getpid()))
+        module_logger.debug("Scanner, pid: {}".format(os.getpid()))
 
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
         module_logger.debug("Finished bloom filter")
