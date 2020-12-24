@@ -22,9 +22,28 @@ module_logger = logging.getLogger("OceanColor.inrange")
 class InRange(object):
     """Search Ocean Color DB for pixels in range of defined positions
 
-       The satellite files are scanned in parallel in the background and
-       checked against the given waypoints, so that it searches for the next
-       matchup in advance before it is actually requested.
+    The satellite files are scanned in parallel in the background and checked
+    against the given waypoints, so that it searches for the next matchup in
+    advance before it is actually requested.
+
+    Example
+    -------
+    track = DataFrame([
+        {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81},
+        {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}
+        ])
+
+    matchup = InRange(os.getenv("NASA_USERNAME"),
+                      os.getenv("NASA_PASSWORD"),
+                      './',
+                      npes=3)
+    matchup.search(track,
+                   sensor="aqua",
+                   dtype="L3m",
+                   dt_tol=timedelta64(12, 'h'),
+                   dL_tol=12e3)
+    for m in matchup:
+        print(m)
     """
 
     def __init__(self, username, password, path="./", npes=None):
