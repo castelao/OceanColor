@@ -88,10 +88,8 @@ class OceanColorDB(object):
             self.backend[key] = ds
         return ds
 
-
     def backend(self):
         raise NotImplementedError("Must define a backend for OceanColorDB")
-
 
     def remote_content(self, filename, t_min=4, t_random=4):
         """Read a remote file with minimum time between downloads
@@ -206,7 +204,9 @@ class Filename(object):
 
     @property
     def dirname(self):
-        path = os.path.join(self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"])
+        path = os.path.join(
+            self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"]
+        )
         return path
 
     @property
