@@ -96,7 +96,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     g = Geod(ellps="WGS84")  # Use Clarke 1966 ellipsoid.
     assert ds.time.dims == ("number_of_lines",), "Assume time by n of lines"
     for i, p in subset.iterrows():
-        for l, grp in ds.groupby("number_of_lines"):
+        for _, grp in ds.groupby("number_of_lines"):
             # Only sat. Chl within a certain distance.
             dL = g.inv(
                 grp.lon.data,
