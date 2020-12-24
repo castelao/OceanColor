@@ -29,7 +29,7 @@ class InRange(object):
        checked against the given waypoints, so that it searches for the next
        matchup in advance before it is actually requested.
     """
-    def __init__(self, username, password, npes=None):
+    def __init__(self, username, password, path="./", npes=None):
         if npes is None:
             npes = int(2 * mp.cpu_count())
         self.npes = npes
@@ -37,6 +37,7 @@ class InRange(object):
         self.queue = self.manager.Queue(int(3 * npes))
 
         self.db = OceanColorDB(username, password)
+        self.db.backend = FileSystem(path)
 
     def __iter__(self):
         return self
