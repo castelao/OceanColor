@@ -190,7 +190,7 @@ def bloom_filter(
     # between valid waypoints.
     chrono = track.time.sort_values()
     dt = chrono.diff().abs()
-    if dt.max() > 2 * dt_tol:
+    if (len(dt) > 1) and (dt.max() > 2 * dt_tol):
         time_split = chrono.iloc[dt.argmax()]
         module_logger.debug(
             "Sparse track. bloom_filter() will split search at: {}".format(time_split)
