@@ -150,6 +150,17 @@ def bloom_filter(
     dL_tol: Optional[Any] = None,
 ):
     """
+
+    This generator keeps track of previous responses to avoid duplicates. When
+    running with track composed of multiple waypoints, it is possible for a
+    target to potentially match multiple waypoints, but each target is returned
+    only once.
+
+    In the case of spaced tracks, let's say every Sunday, with a small dt_tol,
+    the search is broken in smaller chunks to avoid return the middle of the
+    week as potential targets. The operation here is light but it can make
+    a big difference for the next step that uses this output.
+
     Notes
     -----
     - The lowest level function that receives a track as input should implement
@@ -173,6 +184,31 @@ def bloom_filter(
         for s in sensor:
             filenames = bloom_filter(track, s, dtype, dt_tol)
             yield from filenames
+        return
+
+    # For a spaced track, break it in parts to avoid results in the middle
+    # between valid waypoints.
+    chrono = track.time.sort_values()
+    dt = chrono.diff().abs()
+    if dt.max() > 2 * dt_tol:
+        time_split = chrono.iloc[dt.argmax()]
+        module_logger.debug(
+            "Sparse track. bloom_filter() will split search at: {}".format(time_split)
+        )
+        yield from bloom_filter(
+            track=track[track.time < time_split],
+            sensor=sensor,
+            dtype=dtype,
+            dt_tol=dt_tol,
+            dL_tol=dL_tol,
+        )
+        yield from bloom_filter(
+            track=track[track.time >= time_split],
+            sensor=sensor,
+            dtype=dtype,
+            dt_tol=dt_tol,
+            dL_tol=dL_tol,
+        )
         return
 
     stime = datetime64(track.time.min() - dt_tol)
