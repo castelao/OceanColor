@@ -5,17 +5,140 @@ of given waypoints.
 """
 
 import logging
+import threading, queue
+import os
 from typing import Any, Dict, Optional, Sequence
 
 import numpy as np
 import pandas as pd
 from pyproj import Geod
 
+from .cmr import bloom_filter
+from .storage import OceanColorDB, FileSystem
 
 module_logger = logging.getLogger("OceanColor.inrange")
 
 
-def inrange(track, ds, dL_tol, dt_tol):
+class InRange(object):
+    """Search Ocean Color DB for pixels in range of defined positions
+
+    The satellite files are scanned in parallel in the background and checked
+    against the given waypoints, so that it searches for the next matchup in
+    advance before it is actually requested.
+
+    Example
+    -------
+    track = DataFrame([
+        {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81},
+        {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}
+        ])
+
+    matchup = InRange(os.getenv("NASA_USERNAME"),
+                      os.getenv("NASA_PASSWORD"),
+                      './',
+                      npes=3)
+    matchup.search(track,
+                   sensor="aqua",
+                   dtype="L3m",
+                   dt_tol=timedelta64(12, 'h'),
+                   dL_tol=12e3)
+    for m in matchup:
+        print(m)
+    """
+
+    def __init__(self, username, password, path="./", npes=None):
+        """
+        Parameters
+        ----------
+        username : str
+            NASA's EarthData username
+        password : str
+            NASA's EarthData password
+        path : str, optional
+            Path to save locally NASA's data files
+        npes : int, optional
+            Number of maximum parallel jobs
+        """
+        module_logger.info("Initializing InRange")
+        if npes is None:
+            npes = int(2 * mp.cpu_count())
+        self.npes = npes
+        module_logger.debug("Initializing InRange with npes={}".format(npes))
+        n_queue = int(3 * npes)
+        self.queue = queue.Queue(int(3 * npes))
+        module_logger.debug("Initializing InRange with a queue size {}".format(npes))
+
+        self.db = OceanColorDB(username, password)
+        self.db.backend = FileSystem(path)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
+
+    def next(self):
+        output = self.queue.get()
+        if isinstance(output, str) and (output == "END"):
+            raise StopIteration
+        return output
+
+    def search(self, track, sensor, dtype, dt_tol, dL_tol):
+        """Initiate a new search
+
+        Parameters
+        ----------
+        track:
+        sensor:
+        dtype:
+        dt_tol:
+        dL_tol:
+        """
+        module_logger.debug("Searching for matchups.")
+        self.worker = threading.Thread(
+            target=self.scanner,
+            args=(self.queue, self.npes, track, sensor, dtype, dt_tol, dL_tol),
+        )
+        module_logger.debug("Starting scanner worker.")
+        self.worker.start()
+
+    def scanner(self, queue, npes, track, sensor, dtype, dt_tol, dL_tol):
+        timeout = 900
+        module_logger.debug("Scanner, pid: {}".format(os.getpid()))
+
+        filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
+        module_logger.debug("Finished bloom filter")
+
+        results = []
+        for f in filenames:
+            module_logger.info("Scanning: {}".format(f))
+            if len(results) > 2:
+                idx = [r.is_alive() for r in results]
+                if np.all(idx):
+                    r = results.pop(0)
+                    module_logger.debug("Waiting for {}".format(r.name))
+                else:
+                    r = results.pop(idx.index(False))
+                r.join()
+                module_logger.debug("Finished {}".format(r.name))
+            module_logger.debug("Getting {}".format(f))
+            ds = self.db[f].compute()
+            module_logger.debug("Launching search on {}".format(f))
+            results.append(
+                threading.Thread(
+                    target=inrange, args=(track, ds, dL_tol, dt_tol, queue)
+                )
+            )
+            results[-1].start()
+        for r in results:
+            r.join()
+            module_logger.debug("Finished {}".format(r.name))
+
+        module_logger.debug("Finished scanning all potential matchups.")
+        queue.put("END")
+
+
+def inrange(track, ds, dL_tol, dt_tol, queue=None):
     """Search for all pixels in a time/space range of a track
 
     This is the general function that will choose which procedure to apply
@@ -25,10 +148,22 @@ def inrange(track, ds, dL_tol, dt_tol):
     assert ds.processing_level in ("L2", "L3 Mapped")
     if ds.processing_level == "L2":
         module_logger.debug("processing_level L2, using inrange_L2")
-        return inrange_L2(track, ds, dL_tol, dt_tol)
+        output = inrange_L2(track, ds, dL_tol, dt_tol)
     elif ds.processing_level == "L3 Mapped":
         module_logger.debug("processing_level L3 mapped, using inrange_L3m")
-        return inrange_L3m(track, ds, dL_tol, dt_tol)
+        output = inrange_L3m(track, ds, dL_tol, dt_tol)
+    else:
+        return
+
+    if queue is None:
+        return output
+    elif output.size > 0:
+        module_logger.info(
+            "Found {} matchups in {}".format(len(output.index), ds.product_name)
+        )
+        queue.put(output)
+    else:
+        module_logger.info("No matchups from {}".format(ds.product_name))
 
 
 def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
@@ -77,8 +212,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     # ==== Restrict to lines and columns within the latitude range ====
     # Using 100 to get a larger deg_tol
     deg_tol = dL_tol / 100e3
-    idx = (ds.latitude >= (subset.lat.min() - deg_tol)) & (
-        ds.latitude <= (subset.lat.max() + deg_tol)
+    idx = (ds.lat >= (subset.lat.min() - deg_tol)) & (
+        ds.lat <= (subset.lat.max() + deg_tol)
     )
     if not idx.any():
         return output
@@ -90,27 +225,27 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         for v in ds.variables.keys()
         if ds.variables[v].dims == ("number_of_lines", "pixels_per_line")
     ]
-    varnames = [v for v in varnames if v not in ("latitude", "longitude")]
+    varnames = [v for v in varnames if v not in ("lat", "lon")]
     # ds = ds[varnames]
 
     g = Geod(ellps="WGS84")  # Use Clarke 1966 ellipsoid.
     assert ds.time.dims == ("number_of_lines",), "Assume time by n of lines"
     for i, p in subset.iterrows():
-        for l, grp in ds.groupby("number_of_lines"):
+        for _, grp in ds.groupby("number_of_lines"):
             # Only sat. Chl within a certain distance.
             dL = g.inv(
-                grp.longitude.data,
-                grp.latitude.data,
-                np.ones(grp.longitude.shape) * p.lon,
-                np.ones(grp.latitude.shape) * p.lat,
+                grp.lon.data,
+                grp.lat.data,
+                np.ones(grp.lon.shape) * p.lon,
+                np.ones(grp.lat.shape) * p.lat,
             )[2]
             idx = dL <= dL_tol
             if idx.any():
                 # Save the product_name??
                 tmp = {
                     "waypoint_id": i,
-                    "lon": grp.longitude.data[idx],
-                    "lat": grp.latitude.data[idx],
+                    "lon": grp.lon.data[idx],
+                    "lat": grp.lat.data[idx],
                     "dL": dL[idx].astype("i"),
                     "dt": pd.to_datetime(grp.time.data) - p.time,
                 }

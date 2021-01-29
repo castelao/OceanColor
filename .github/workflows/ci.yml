@@ -30,6 +30,15 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install -e .
 
+    - name: Cache sample data
+      id: cache-samples
+      uses: actions/cache@v2
+      with:
+        path: |
+          A2017012213500.L2_LAC_OC.nc
+          A2017012.L3m_DAY_CHL_chlor_a_4km.nc
+        key: ${{ runner.os }}-CHL
+
     - name: Test with pytest
       run: |
         pytest tests
