@@ -46,6 +46,38 @@ def test_bloom_filter():
         f
 
 
+def test_bloom_filter_unique():
+    """bloom_filter() should return unique potential matchs
+
+    When searching for a track with multiple points, it is possible to have an
+    overlap of the potential matchups, such as two close by waypoints in the
+    same track. To avoid that, bloom_filter keeps a memory of the results to
+    ignore duplicates.
+    """
+    track = [
+        {"time": datetime64("2019-05-01"), "lat": 18, "lon": 38},
+        {"time": datetime64("2019-05-01"), "lat": 18.001, "lon": 38.001},
+        {"time": datetime64("2019-05-02"), "lat": 18, "lon": 38},
+    ]
+    track = pd.DataFrame(track)
+    search = bloom_filter(track, sensor="aqua", dtype="L3m", dt_tol=timedelta64(24, "h"), dL_tol=10e3)
+    results = [r for r in search]
+    assert len(results) == len(set(results)), "Duplicates from bloom_filter"
+
+
+def test_bloom_filter_spaced_target():
+    track = [
+        {"time": datetime64("2019-05-01 12:00:00"), "lat": 18, "lon": 38},
+        {"time": datetime64("2019-05-05 12:00:00"), "lat": 18, "lon": 38},
+        {"time": datetime64("2019-05-15 12:00:00"), "lat": 18, "lon": 38},
+    ]
+    track = pd.DataFrame(track, index=[0, 10, 100])
+    search = bloom_filter(track, sensor="aqua", dtype="L3m", dt_tol=timedelta64(6, "h"), dL_tol=5e3)
+    results = [r for r in search]
+    print(results)
+    assert len(results) < 5
+    assert len(results) == 3
+
 def test_search_criteria():
     search = search_criteria(sensor="aqua", dtype="L2")
     assert search["short_name"] == "MODISA_L2_OC"
