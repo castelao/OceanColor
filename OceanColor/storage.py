@@ -1,13 +1,121 @@
 """Main module."""
 
+from datetime import datetime, timedelta
 import logging
+import multiprocessing as mp
+import numpy as np
 import os
+import random
 import re
+import tempfile
+import time
 
 import xarray as xr
 
+from .gsfc import read_remote_file
+
 
 module_logger = logging.getLogger("OceanColor.storage")
+
+
+class OceanColorDB(object):
+    """An abstraction of NASA's Ocean Color database
+
+    In the future develop a local cache so it wouldn't need to download more
+    than once the same file.
+
+    Examples
+    --------
+    >>> db = OceanColorDB(username, password)
+    >>> db.backend = FileSystem('./')
+    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    >>> ds.attrs
+
+    ToDo
+    ----
+    - Generalize the backend entry. The idea in the future is to create other
+      backends like S3.
+    - Think about the best way to define the backend. Maybe add an optional
+      parameter path, which if available is used to define the backend as a
+      FileSystem.
+    """
+
+    lock = mp.Lock()
+    time_last_download = datetime(1970, 1, 1)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def __getitem__(self, key):
+        """
+
+        Maybe use BytesIO?? or ds.compute()?
+        """
+        try:
+            ds = self.backend[key]
+            module_logger.debug("Reading from backend: {}".format(key))
+        except KeyError:
+            module_logger.debug("Reading from Ocean Color: {}".format(key))
+            # Probably move this reading from remote to another function
+            content = self.remote_content(key)
+            # ds = xr.open_dataset(BytesIO(content))
+            # Seems like it can't read groups using BytesIO
+            with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
+                tmp.write(content)
+                tmp.flush()
+
+                ds = xr.open_dataset(tmp.name)
+
+                assert ds.processing_level in (
+                    "L2",
+                    "L3 Mapped",
+                ), "I only handle L2 or L3 Mapped"
+                if ds.processing_level == "L2":
+                    geo = xr.open_dataset(tmp.name, group="geophysical_data")
+                    ds = ds.merge(geo)
+                    nav = xr.open_dataset(tmp.name, group="navigation_data")
+                    ds = ds.merge(nav)
+                    # Maybe include full scan line into ds
+                    sline = xr.open_dataset(tmp.name, group="scan_line_attributes")
+                    ds["time"] = (
+                        (sline - 1970).year.astype("datetime64[Y]")
+                        + sline.day
+                        - np.timedelta64(1, "D")
+                        + sline.msec
+                    )
+                    ds = ds.rename({"latitude": "lat", "longitude": "lon"})
+            self.backend[key] = ds
+        return ds
+
+    def backend(self):
+        raise NotImplementedError("Must define a backend for OceanColorDB")
+
+    def remote_content(self, filename, t_min=4, t_random=4):
+        """Read a remote file with minimum time between downloads
+
+        NASA monitors the downloads and excessive activity is temporarily
+        banned, so this function guarantees a minimum time between downloads
+        to avoid ovoerloading NASA servers.
+        """
+        self.lock.acquire()
+        module_logger.debug("remote_content aquired lock")
+        dt = t_min + round(random.random() * t_random, 2)
+        next_time = self.time_last_download + timedelta(seconds=(dt))
+        waiting_time = max((next_time - datetime.now()).total_seconds(), 0)
+        module_logger.debug(
+            "Waiting {} seconds before downloading.".format(waiting_time)
+        )
+        time.sleep(waiting_time)
+        try:
+            module_logger.info("Downloading: {}".format(filename))
+            content = read_remote_file(filename, self.username, self.password)
+        finally:
+            self.time_last_download = datetime.now()
+            module_logger.debug("remote_content releasing lock")
+            self.lock.release()
+
+        return content
 
 
 # db.backend
@@ -27,9 +135,15 @@ class FileSystem(object):
     the contents limit for the operational system. Probably around several
     hundreds of files in the same directory.
     """
+
     def __init__(self, root):
         module_logger.debug("Using FileSystem as storage at: {}".format(root))
-        assert os.path.isdir(root)
+
+        if not os.path.isdir(root):
+            module_logger.critical(
+                "Invalid path for backend.FileSystem {}".format(root)
+            )
+            raise FileNotFoundError
         self.root = os.path.abspath(root)
 
     def __getitem__(self, key):
@@ -90,7 +204,9 @@ class Filename(object):
 
     @property
     def dirname(self):
-        path = os.path.join(self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"])
+        path = os.path.join(
+            self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"]
+        )
         return path
 
     @property
@@ -120,7 +236,7 @@ def parse_filename(filename):
       - V2015009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc
       - V2018006230000.L2_JPSS1_OC.nc
     """
-    rule = """
+    rule = r"""
         (?P<platform>[S|A|T|V])
         (?P<year>\d{4})
         (?P<doy>\d{3})
