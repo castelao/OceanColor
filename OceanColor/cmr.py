@@ -220,6 +220,7 @@ def bloom_filter(
     if rule is not None:
         rule = re.compile(rule)
 
+    memory = []
     for _, p in track.iterrows():
         temporal = "{},{}".format(
             datetime_as_string(stime, unit="s"),
@@ -228,7 +229,9 @@ def bloom_filter(
         circle = "{},{},{}".format(p.lon, p.lat, dL_tol)
         for g in granules_search(temporal=temporal, circle=circle, **criteria):
             if (rule is None) or rule.search(g):
-                yield g
+                if g not in memory:
+                    memory.append(g)
+                    yield g
 
 
 """
