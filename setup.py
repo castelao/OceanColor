@@ -51,4 +51,7 @@ setup(
     url='https://github.com/castelao/OceanColor',
     version="0.0.6",
     zip_safe=False,
+    extras_require = {
+        'parallel': ["loky>=2.9"],
+    }
 )
