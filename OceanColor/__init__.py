@@ -7,7 +7,7 @@ import warnings
 
 __author__ = """Guilherme Castelão"""
 __email__ = "guilherme@castelao.net"
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 # Recent OSX requires this environment variable to run parallel processes
 if sys.platform == "darwin":
