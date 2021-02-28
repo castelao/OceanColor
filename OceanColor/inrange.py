@@ -68,7 +68,7 @@ class InRange(object):
         """
         module_logger.info("Initializing InRange")
         if npes is None:
-            npes = int(2 * mp.cpu_count())
+            npes = 3
         self.npes = npes
         module_logger.debug("Initializing InRange with npes={}".format(npes))
         n_queue = int(3 * npes)
