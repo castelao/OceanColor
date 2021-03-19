@@ -274,7 +274,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     lon_tol = deg_tol / np.cos(np.pi / 180 * subset.lat.abs().max())
     lon_start = subset.lon.min() - lon_tol
     lon_end = subset.lon.max() + lon_tol
-    if lon_start > -180:
+    # Otherwise do the precise distance estimate to handle the day line.
+    if (lon_start > -180) and (lon_end < 180):
         idx &= (ds.lon >= (subset.lon.min() - lon_tol)) & (
             ds.lon <= (subset.lon.max() + lon_tol))
         if not idx.any():
