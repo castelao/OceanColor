@@ -263,11 +263,24 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     # ==== Restrict to lines and columns within the latitude range ====
     # Using 100 to get a larger deg_tol
     deg_tol = dL_tol / 100e3
+
     idx = (ds.lat >= (subset.lat.min() - deg_tol)) & (
         ds.lat <= (subset.lat.max() + deg_tol)
     )
     if not idx.any():
         return output
+
+    # Meridians converge poleward, thus requiring a different criterion
+    lon_tol = deg_tol / np.cos(np.pi / 180 * subset.lat.abs().max())
+    lon_start = subset.lon.min() - lon_tol
+    lon_end = subset.lon.max() + lon_tol
+    # Otherwise do the precise distance estimate to handle the day line.
+    if (lon_start > -180) and (lon_end < 180):
+        idx &= (ds.lon >= (subset.lon.min() - lon_tol)) & (
+            ds.lon <= (subset.lon.max() + lon_tol))
+        if not idx.any():
+            return output
+
     ds = ds.isel(pixels_per_line=idx.any(dim="number_of_lines"))
     ds = ds.isel(number_of_lines=idx.any(dim="pixels_per_line"))
 
@@ -309,6 +322,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
                 tmp = tmp[(~tmp[varnames].isna()).any(axis="columns")]
                 output = output.append(tmp, ignore_index=True)
 
+    if "product_name" in ds.attrs:
+        output["product_name"] = ds.product_name
     return output
 
 
