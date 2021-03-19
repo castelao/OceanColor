@@ -22,7 +22,7 @@ def test_inrange_L2():
     data = inrange_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
-    assert data.size == 11648
+    assert data.size == 12096
 
 
 def test_inrange_L2_day_line():
@@ -34,7 +34,7 @@ def test_inrange_L2_day_line():
     data = inrange_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
-    assert data.size == 92359
+    assert data.size == 97220
     assert data.lon.min() < 0
     assert data.lon.max() > 0
 
