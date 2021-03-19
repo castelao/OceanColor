@@ -22,7 +22,7 @@ def test_inrange_L2():
     data = inrange_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
-    assert data.size == 12096
+    assert data.index.size == 448
 
 
 def test_inrange_L2_day_line():
@@ -60,6 +60,7 @@ def test_inrange_L3m():
     data = inrange_L3m(track, ds, dL_tol, dt_tol)
 
     # Dummy check
+    assert data.index.size == 7
     assert data.size == 42
 
 
@@ -72,6 +73,7 @@ def test_inrange():
     data = inrange(track, ds, dL_tol, dt_tol)
 
     # Dummy check
+    assert data.index.size == 7
     assert data.size == 42
 
 
