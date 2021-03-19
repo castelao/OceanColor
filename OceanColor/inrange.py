@@ -321,6 +321,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
                 tmp = tmp[(~tmp[varnames].isna()).any(axis="columns")]
                 output = output.append(tmp, ignore_index=True)
 
+    if "product_name" in ds.attrs:
+        output["product_name"] = ds.product_name
     return output
 
 
