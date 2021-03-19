@@ -270,7 +270,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     if not idx.any():
         return output
 
-    # Meridians converge poleward, thus requiring a differente criterion
+    # Meridians converge poleward, thus requiring a different criterion
     lon_tol = deg_tol / np.cos(np.pi / 180 * subset.lat.abs().max())
     lon_start = subset.lon.min() - lon_tol
     lon_end = subset.lon.max() + lon_tol
