@@ -1,0 +1,19 @@
+{
+  "creators": [
+    {
+      "name": "Castelao, Guilherme",
+      "affiliation": "Scripps Institution of Oceanography - UC San Diego",
+      "orcid": "0000-0002-6765-0708"
+    }
+  ],
+  "contributors": [
+    {
+      "type": "Sponsor",
+      "name": "Global Ocean Monitoring and Observing (GOMO) Program - NOAA"
+    },
+    {
+      "type": "Sponsor",
+      "name": "Southern California Coastal Ocean Observing System"
+    }
+  ]
+}
