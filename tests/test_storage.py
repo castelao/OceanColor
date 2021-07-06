@@ -13,23 +13,38 @@ def test_parse_filename_AL2():
     filename = "A2011010000000.L2_LAC_OC.nc"
     descriptors = parse_filename(filename)
 
-    ans = {'platform': 'A', 'year': '2011', 'doy': '010', 'time': '000000', 'mode': 'L2', 'instrument': None}
+    ans = {
+        "platform": "A",
+        "year": "2011",
+        "doy": "010",
+        "time": "000000",
+        "mode": "L2",
+        "instrument": None,
+    }
     for a in ans:
         assert descriptors[a] == ans[a]
+
 
 def test_parse_filename_AL3m():
     filename = "T2004006.L3m_DAY_CHL_chlor_a_4km.nc"
     descriptors = parse_filename(filename)
 
-    ans = {'platform': 'T', 'year': '2004', 'doy': '006', 'time': None, 'mode': 'L3m', 'instrument': None}
+    ans = {
+        "platform": "T",
+        "year": "2004",
+        "doy": "006",
+        "time": None,
+        "mode": "L3m",
+        "instrument": None,
+    }
     for a in ans:
         assert descriptors[a] == ans[a]
 
 
 def test_OceanColorDB():
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
-    db.backend = FileSystem('./')
-    ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    db.backend = FileSystem("./")
+    ds = db["T2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
     ds.attrs
 
 
@@ -39,14 +54,14 @@ def test_contains():
     Allows to check if a granule is available in the FileSystem.
     """
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
-    db.backend = FileSystem('./')
+    db.backend = FileSystem("./")
 
     # Confirm that inexistent is not available
-    assert not 'inexistent_granule' in db
+    assert not "inexistent_granule" in db
 
     # Check something that exists
     # Be sure that is was available or download it first
-    filename = 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc'
+    filename = "T2004006.L3m_DAY_CHL_chlor_a_4km.nc"
     ds = db[filename]
     # then check (confirm) that it is available
     assert filename in db
@@ -58,8 +73,8 @@ def test_serialize_OceanColorDB():
     This is required to transport between processes, threads and queues.
     """
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
-    db.backend = FileSystem('./')
-    ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    db.backend = FileSystem("./")
+    ds = db["T2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
     ds2 = pickle.loads(pickle.dumps(ds.compute()))
 
     assert ds == ds2
