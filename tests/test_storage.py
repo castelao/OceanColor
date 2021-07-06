@@ -63,3 +63,28 @@ def test_serialize_OceanColorDB():
     ds2 = pickle.loads(pickle.dumps(ds.compute()))
 
     assert ds == ds2
+
+
+def test_no_download():
+    """
+
+    The SNPP was not available on 2000, thus the used target here is guarantee
+    to be missing from the current db
+    """
+    db = OceanColorDB(
+        username=os.getenv("NASA_USERNAME"),
+        password=os.getenv("NASA_PASSWORD"),
+        download=False,
+    )
+    db.backend = FileSystem("./")
+
+    filename = "V2000009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc"
+    # Confirm that it is not available, otherwise this test doesn't make sense
+    assert filename not in db
+
+    try:
+        db[filename]
+    except KeyError:
+        return
+    # It was not supposed to reach here
+    raise

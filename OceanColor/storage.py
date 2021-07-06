@@ -43,49 +43,65 @@ class OceanColorDB(object):
     lock = mp.Lock()
     time_last_download = datetime(1970, 1, 1)
 
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str, download: bool = True):
+        """Initializes OceanColorDB
+
+        Parameters
+        ----------
+        username: str
+        password: str
+        download: bool
+            Download new data when required, otherwise limit to the already
+            available datasets.
+        """
         self.username = username
         self.password = password
+        self.download = download
 
     def __getitem__(self, key):
         """
 
         Maybe use BytesIO?? or ds.compute()?
         """
+        module_logger.debug("Reading from backend: {}".format(key))
         try:
-            ds = self.backend[key]
-            module_logger.debug("Reading from backend: {}".format(key))
+            return self.backend[key]
         except KeyError:
-            module_logger.debug("Reading from Ocean Color: {}".format(key))
-            # Probably move this reading from remote to another function
-            content = self.remote_content(key)
-            # ds = xr.open_dataset(BytesIO(content))
-            # Seems like it can't read groups using BytesIO
-            with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
-                tmp.write(content)
-                tmp.flush()
+            module_logger.debug("{} is not on the storage".format(key))
+            if not self.download:
+                module_logger.info("{} is not available and download is off.".format(key))
+                raise KeyError
 
-                ds = xr.open_dataset(tmp.name)
+        module_logger.debug("Downloading from Ocean Color: {}".format(key))
+        # Probably move this reading from remote to another function
+        content = self.remote_content(key)
+        # ds = xr.open_dataset(BytesIO(content))
+        # Seems like it can't read groups using BytesIO
+        with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
+            tmp.write(content)
+            tmp.flush()
 
-                assert ds.processing_level in (
-                    "L2",
-                    "L3 Mapped",
-                ), "I only handle L2 or L3 Mapped"
-                if ds.processing_level == "L2":
-                    geo = xr.open_dataset(tmp.name, group="geophysical_data")
-                    ds = ds.merge(geo)
-                    nav = xr.open_dataset(tmp.name, group="navigation_data")
-                    ds = ds.merge(nav)
-                    # Maybe include full scan line into ds
-                    sline = xr.open_dataset(tmp.name, group="scan_line_attributes")
-                    ds["time"] = (
-                        (sline - 1970).year.astype("datetime64[Y]")
-                        + sline.day
-                        - np.timedelta64(1, "D")
-                        + sline.msec
-                    )
-                    ds = ds.rename({"latitude": "lat", "longitude": "lon"})
-            self.backend[key] = ds
+            ds = xr.open_dataset(tmp.name)
+
+            assert ds.processing_level in (
+                "L2",
+                "L3 Mapped",
+            ), "I only handle L2 or L3 Mapped"
+            if ds.processing_level == "L2":
+                geo = xr.open_dataset(tmp.name, group="geophysical_data")
+                ds = ds.merge(geo)
+                nav = xr.open_dataset(tmp.name, group="navigation_data")
+                ds = ds.merge(nav)
+                # Maybe include full scan line into ds
+                sline = xr.open_dataset(tmp.name, group="scan_line_attributes")
+                ds["time"] = (
+                    (sline - 1970).year.astype("datetime64[Y]")
+                    + sline.day
+                    - np.timedelta64(1, "D")
+                    + sline.msec
+                )
+                ds = ds.rename({"latitude": "lat", "longitude": "lon"})
+        self.backend[key] = ds
         return ds
 
     def __contains__(self, item: str):
