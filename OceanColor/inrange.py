@@ -128,7 +128,7 @@ class InRange(object):
         results = []
         for f in filenames:
             module_logger.info("Scanning: {}".format(f))
-            if len(results) > 2:
+            if len(results) > npes:
                 idx = [r.is_alive() for r in results]
                 if np.all(idx):
                     r = results.pop(0)
