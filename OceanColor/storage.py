@@ -101,7 +101,7 @@ class OceanColorDB(object):
                     + sline.msec
                 )
                 ds = ds.rename({"latitude": "lat", "longitude": "lon"})
-        self.backend[key] = ds
+            self.backend[key] = ds
         return ds
 
     def __contains__(self, item: str):
