@@ -2,13 +2,13 @@
 
 from datetime import datetime, timedelta
 import logging
-import multiprocessing as mp
 import numpy as np
 import os
 import random
 import re
 import tempfile
 import time
+import threading
 
 import xarray as xr
 
@@ -40,7 +40,7 @@ class OceanColorDB(object):
       FileSystem.
     """
 
-    lock = mp.Lock()
+    lock = threading.Lock()
     time_last_download = datetime(1970, 1, 1)
 
     def __init__(self, username: str, password: str, download: bool = True):
