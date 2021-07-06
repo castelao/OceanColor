@@ -88,6 +88,9 @@ class OceanColorDB(object):
             self.backend[key] = ds
         return ds
 
+    def __contains__(self, item: str):
+        return self.backend.__contains__(item)
+
     def backend(self):
         raise NotImplementedError("Must define a backend for OceanColorDB")
 
@@ -164,6 +167,18 @@ class FileSystem(object):
             os.makedirs(d)
         # ds.to_netcdf("{}.nc".format(filename))
         ds.to_netcdf(filename)
+
+    def __contains__(self, key: str):
+        # Improve this: Better handle invalid granule name (key).
+        try:
+            filename = self.path(key)
+        except:
+            return False
+
+        if os.path.exists(filename):
+            return True
+        else:
+            return False
 
     def path(self, filename):
         """Standard path for the given filename

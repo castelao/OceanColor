@@ -33,6 +33,25 @@ def test_OceanColorDB():
     ds.attrs
 
 
+def test_contains():
+    """Contain check for FileSystem
+
+    Allows to check if a granule is available in the FileSystem.
+    """
+    db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
+    db.backend = FileSystem('./')
+
+    # Confirm that inexistent is not available
+    assert not 'inexistent_granule' in db
+
+    # Check something that exists
+    # Be sure that is was available or download it first
+    filename = 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc'
+    ds = db[filename]
+    # then check (confirm) that it is available
+    assert filename in db
+
+
 def test_serialize_OceanColorDB():
     """Test if a OceanColorDB item is serializeable
 
