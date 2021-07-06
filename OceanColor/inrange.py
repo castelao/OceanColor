@@ -17,13 +17,15 @@ from pyproj import Geod
 from .cmr import bloom_filter
 from .storage import OceanColorDB, FileSystem
 
+module_logger = logging.getLogger("OceanColor.inrange")
+
 try:
     from loky import get_reusable_executor
     LOKY_AVAILABLE = True
+    module_logger.debug("Will use package loky to search in parallel.")
 except:
     LOKY_AVAILABLE = False
-
-module_logger = logging.getLogger("OceanColor.inrange")
+    module_logger.info("Missing package loky. Falling back to threading.")
 
 
 class InRange(object):
