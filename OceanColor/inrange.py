@@ -17,13 +17,15 @@ from pyproj import Geod
 from .cmr import bloom_filter
 from .storage import OceanColorDB, FileSystem
 
+module_logger = logging.getLogger("OceanColor.inrange")
+
 try:
     from loky import get_reusable_executor
     LOKY_AVAILABLE = True
+    module_logger.debug("Will use package loky to search in parallel.")
 except:
     LOKY_AVAILABLE = False
-
-module_logger = logging.getLogger("OceanColor.inrange")
+    module_logger.info("Missing package loky. Falling back to threading.")
 
 
 class InRange(object):
@@ -91,7 +93,7 @@ class InRange(object):
         return output
 
     def search(self, track, sensor, dtype, dt_tol, dL_tol):
-        """Initiate a new search
+        """Initiate a new search in the background
 
         Parameters
         ----------
@@ -126,7 +128,7 @@ class InRange(object):
         results = []
         for f in filenames:
             module_logger.info("Scanning: {}".format(f))
-            if len(results) > 2:
+            if len(results) > npes:
                 idx = [r.is_alive() for r in results]
                 if np.all(idx):
                     r = results.pop(0)
@@ -231,7 +233,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         this DataFrame will be used as the reference on for the output.
 
     ds: xr.Dataset
-        L3m composite.
+        L2
 
     dL_tol: float
         Distance in meters around a waypoint to be considered a matchup.
