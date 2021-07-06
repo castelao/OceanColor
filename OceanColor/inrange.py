@@ -233,7 +233,7 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         this DataFrame will be used as the reference on for the output.
 
     ds: xr.Dataset
-        L3m composite.
+        L2
 
     dL_tol: float
         Distance in meters around a waypoint to be considered a matchup.
