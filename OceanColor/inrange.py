@@ -93,7 +93,7 @@ class InRange(object):
         return output
 
     def search(self, track, sensor, dtype, dt_tol, dL_tol):
-        """Initiate a new search
+        """Initiate a new search in the background
 
         Parameters
         ----------
