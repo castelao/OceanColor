@@ -20,7 +20,7 @@ from .storage import OceanColorDB, FileSystem
 module_logger = logging.getLogger("OceanColor.inrange")
 
 try:
-    from loky import get_reusable_executor
+    from loky import ProcessPoolExecutor
     LOKY_AVAILABLE = True
     module_logger.debug("Will use package loky to search in parallel.")
 except:
@@ -166,31 +166,34 @@ class InRange(object):
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
         module_logger.debug("Finished bloom filter")
 
-        executor = get_reusable_executor(max_workers=npes, timeout=timeout)
-        results = []
-        for f in filenames:
-            module_logger.info("Scanning: {}".format(f))
-            if len(results) >= npes:
-                idx = [r.done() for r in results]
-                while not np.any(idx):
-                    time.sleep(1)
+        with ProcessPoolExecutor(max_workers=npes, timeout=timeout) as executor:
+            results = []
+            for f in filenames:
+                module_logger.info("Scanning: {}".format(f))
+                if (len(results) >= npes) and parent.is_alive():
                     idx = [r.done() for r in results]
-                tmp = results.pop(idx.index(True)).result()
+                    while not np.any(idx):
+                        time.sleep(1)
+                        idx = [r.done() for r in results]
+                    tmp = results.pop(idx.index(True)).result()
+                    module_logger.debug("Finished reading another file")
+                    if not tmp.empty:
+                        module_logger.warning("Found {} matchs".format(len(tmp)))
+                        queue.put(tmp)
+                module_logger.debug("Getting {}".format(f))
+                ds = self.db[f].compute()
+                if not parent.is_alive():
+                    return
+                module_logger.debug("Submitting a new inrange process")
+                results.append(executor.submit(inrange, track, ds, dL_tol, dt_tol))
+
+            for tmp in (r.result(timeout) for r in results):
+                if not parent.is_alive():
+                    return
                 module_logger.debug("Finished reading another file")
                 if not tmp.empty:
                     module_logger.warning("Found {} matchs".format(len(tmp)))
                     queue.put(tmp)
-            module_logger.debug("Getting {}".format(f))
-            ds = self.db[f].compute()
-            module_logger.debug("Submitting a new inrange process")
-            results.append(executor.submit(inrange, track, ds, dL_tol, dt_tol))
-
-        for tmp in (r.result(timeout) for r in results):
-            module_logger.debug("Finished reading another file")
-            if not tmp.empty:
-                module_logger.warning("Found {} matchs".format(len(tmp)))
-                queue.put(tmp)
-        executor.shutdown()
 
         module_logger.debug("Finished scanning all potential matchups.")
         queue.put("END")
