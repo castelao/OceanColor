@@ -9,7 +9,10 @@ from OceanColor.inrange import inrange_L2, inrange_L3m, inrange
 from OceanColor.storage import OceanColorDB, FileSystem
 from OceanColor.OceanColor import InRange
 
-db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
+username = os.getenv("NASA_USERNAME")
+password = os.getenv("NASA_PASSWORD")
+
+db = OceanColorDB(username, password)
 db.backend = FileSystem('./')
 
 
@@ -77,7 +80,9 @@ def test_inrange():
     assert data.size == 42
 
 
-def test_InRange():
+def test_InRange_early_termination():
+  """Terminate before consuming or even finished searching
+  """
   sensor = 'aqua'
   dtype = 'L3m'
   # dtype = 'L2'
@@ -87,5 +92,10 @@ def test_InRange():
       {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81},
       {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}])
 
-  matchup = InRange(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"), './', npes=3)
+  matchup = InRange(username, password, './', npes=3)
   matchup.search(track, sensor, dtype, dt_tol, dL_tol)
+  del(matchup)
+
+  matchup = InRange(username, password, './', npes=3)
+  matchup.search(track, sensor, dtype, dt_tol, dL_tol)
+  # End environment without ever using it
