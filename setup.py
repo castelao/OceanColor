@@ -21,7 +21,7 @@ test_requirements = ['pytest>=3', ]
 setup(
     author="Guilherme Castelão",
     author_email='guilherme@castelao.net',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -31,6 +31,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     description="Deal with NASA Ocean Color data (search and download)",
     entry_points={
@@ -49,9 +50,9 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/castelao/OceanColor',
-    version="0.0.8",
+    version="0.0.9",
     zip_safe=False,
     extras_require = {
-        'parallel': ["loky>=2.9"],
+        'parallel': ["loky>=2.8"],
     }
 )
