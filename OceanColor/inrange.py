@@ -111,14 +111,15 @@ class InRange(object):
             scanner = self.scanner_threading
             module_logger.debug("Scanning with threading.")
 
+        parent = threading.current_thread()
         self.worker = threading.Thread(
             target=scanner,
-            args=(self.queue, self.npes, track, sensor, dtype, dt_tol, dL_tol),
+            args=(self.queue, parent, self.npes, track, sensor, dtype, dt_tol, dL_tol),
         )
         module_logger.debug("Starting scanner worker.")
         self.worker.start()
 
-    def scanner_threading(self, queue, npes, track, sensor, dtype, dt_tol, dL_tol):
+    def scanner_threading(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
         module_logger.debug("Scanner, pid: {}".format(os.getpid()))
 
@@ -128,7 +129,7 @@ class InRange(object):
         results = []
         for f in filenames:
             module_logger.info("Scanning: {}".format(f))
-            if len(results) > npes:
+            if (len(results) >= npes) and parent.is_alive():
                 idx = [r.is_alive() for r in results]
                 if np.all(idx):
                     r = results.pop(0)
@@ -140,6 +141,8 @@ class InRange(object):
             module_logger.debug("Getting {}".format(f))
             ds = self.db[f].compute()
             module_logger.debug("Launching search on {}".format(f))
+            if not parent.is_alive():
+                return
             results.append(
                 threading.Thread(
                     target=inrange, args=(track, ds, dL_tol, dt_tol, queue)
@@ -147,6 +150,8 @@ class InRange(object):
             )
             results[-1].start()
         for r in results:
+            if not parent.is_alive():
+                return
             r.join()
             module_logger.debug("Finished {}".format(r.name))
 
@@ -154,7 +159,7 @@ class InRange(object):
         queue.put("END")
 
 
-    def scanner(self, queue, npes, track, sensor, dtype, dt_tol, dL_tol):
+    def scanner(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
         module_logger.debug("Scanner, pid: {}".format(os.getpid()))
 
