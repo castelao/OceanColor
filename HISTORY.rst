@@ -2,6 +2,8 @@
 History
 =======
 
+Before release 0.1 expect gaps in the history description
+
 0.0.9
 -----
 
