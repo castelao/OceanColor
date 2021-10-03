@@ -5,7 +5,8 @@ Usage
 Register
 --------
 
-The first step is to create an account at `NASA's EarthData <https://urs.earthdata.nasa.gov/users/new>`_.
+The first step is to create an account at `NASA's EarthData <https://urs.earthdata.nasa.gov/users/new>`_  so you can access to NASA's data.
+
 Along this manual, whenever you see <earthdata-username> & <earthdata-password> replace it by your username and password.
 
 Inside Python
