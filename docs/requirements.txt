@@ -1,0 +1,2 @@
+Sphinx==4.2.0
+OceanColor>=0.0.9
