@@ -1,4 +1,7 @@
-"""Main module."""
+"""Store and manage NASA data
+
+Different backends allow for different ways to handle the data from NASA.
+"""
 
 from datetime import datetime, timedelta
 import logging

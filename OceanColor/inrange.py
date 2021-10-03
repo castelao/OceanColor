@@ -1,4 +1,4 @@
-"""Search for data in range
+"""Search for data in range (time and space)
 
 Resources to extract the satellite pixels that are in range (time and space)
 of given waypoints.

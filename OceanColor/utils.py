@@ -1,4 +1,5 @@
-"""Utils module."""
+"""Miscellaneous utils such as flag mask decoding
+"""
 
 import logging
 import os
