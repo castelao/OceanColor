@@ -35,8 +35,8 @@ The OceanColor package was developed at the `Instrument Development Group
 Network <https://spraydata.ucsd.edu/projects/CUGN/>`_ operations, which is
 funded by:
 
-  * Global Ocean Monitoring and Observing (GOMO) Program - NOAA
-  * Southern California Coastal Ocean Observing System (SCCOOS)
+* Global Ocean Monitoring and Observing (GOMO) Program - NOAA
+* Southern California Coastal Ocean Observing System (SCCOOS)
 
 ---------------------
 Quickstart - terminal
