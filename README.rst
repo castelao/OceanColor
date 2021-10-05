@@ -35,9 +35,9 @@ funded by:
   * Global Ocean Monitoring and Observing (GOMO) Program - NOAA
   * Southern California Coastal Ocean Observing System (SCCOOS)
 
-------------------
-Example - terminal
-------------------
+---------------------
+Quickstart - terminal
+---------------------
 
 Let's install it
 
@@ -51,7 +51,8 @@ or
 
     $ conda install OceanColor
 
-Let's get the L2 chlorophyll measurements from MODIS-Aqua nearby Scripps' Pier:
+Let's get the L2 chlorophyll measurements from MODIS-Aqua nearby Scripps' Pier.
+On the terminal, let's run:
 
 .. code-block:: console
 
