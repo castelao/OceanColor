@@ -10,9 +10,12 @@ Welcome to NASA Ocean Color's documentation!
    usage
    contributing
    authors
-   alternatives
-   history
-   api
+
+**Help & reference**
+
+* :doc:`api`
+* :doc:`alternatives`
+* :doc:`history`
 
 Indices and tables
 ==================
