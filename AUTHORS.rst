@@ -2,8 +2,14 @@
 Credits
 =======
 
-This package was developed at the Instrument Development Group (IDG) of `Scripps Institution of Oceanography <https://scripps.ucsd.edu>`_ in support for the chlorophyll fluorescence measurements by the `California Underwater Glider Network (CUGN) <https://spraydata.ucsd.edu/projects/CUGN>`_, which is funded by the Ocean Observing and Monitoring Division - NOAA and the Southern California Coastal Ocean Observing System.
+This package was developed at the `Instrument Development Group (IDG)
+<https://idg.ucsd.edu>`_ of `Scripps Institution of Oceanography
+<https://scripps.ucsd.edu>`_ in support for the chlorophyll fluorescence
+measurements by the `California Underwater Glider Network
+<https://spraydata.ucsd.edu/projects/CUGN/>`_ operations, which is funded by:
 
+* Global Ocean Monitoring and Observing (GOMO) Program - NOAA
+* Southern California Coastal Ocean Observing System (SCCOOS)
 
 Development Lead
 ----------------
@@ -13,4 +19,4 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Catherine Mitchell: Thanks for showing a better way to search on NASA database.

@@ -1,4 +1,7 @@
-"""Main module."""
+"""Store and manage NASA data
+
+Different backends allow for different ways to handle the data from NASA.
+"""
 
 from datetime import datetime, timedelta
 import logging
@@ -20,6 +23,8 @@ module_logger = logging.getLogger("OceanColor.storage")
 
 class OceanColorDB(object):
     """An abstraction of NASA's Ocean Color database
+
+    It uses a backend to actually handle the data.
 
     In the future develop a local cache so it wouldn't need to download more
     than once the same file.
@@ -203,6 +208,11 @@ class FileSystem(object):
         infer the platform, sensor, year, DOY, etc. From that information
         it is defined the standard directory where to store/find that file.
 
+        Parameters
+        ----------
+        filename: str
+            Filename, or granule as called at NASA
+
         Examples
         --------
         >>> f = FileSystem('/data')
@@ -213,7 +223,14 @@ class FileSystem(object):
 
 
 class Filename(object):
-    def __init__(self, filename):
+    """Parse the implicit information on NASA's filename
+
+    NASA's data filename, and granules, follows a standard that can be
+    used to infer some information, such as the instrument or the year of
+    the measuremnt. This class is used in support for the FileSystem
+    backend to guide its directory structure.
+    """
+    def __init__(self, filename: str):
         self.filename = filename
         self.attrs = parse_filename(filename)
 
