@@ -32,6 +32,8 @@ To use NASA Ocean Color in a project::
     for m in matchup:
       print(m)
 
+For more examples, check the collection of notebooks using `Pangeo <https://binder.pangeo.io/v2/gh/castelao/OceanColor/main?filepath=docs%2Fnotebooks%2F>`_
+
 Command line (shell)
 --------------------
 
