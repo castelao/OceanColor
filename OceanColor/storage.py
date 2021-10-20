@@ -113,6 +113,11 @@ class OceanColorDB(object):
         return self.backend.__contains__(item)
 
     def backend(self):
+        """Placeholder to reinforce the use of a backend
+        """
+        module_logger.critical(
+            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
+        )
         raise NotImplementedError("Must define a backend for OceanColorDB")
 
     def remote_content(self, filename, t_min=4, t_random=4):
