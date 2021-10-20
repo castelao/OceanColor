@@ -11,7 +11,17 @@ module_logger = logging.getLogger("OceanColor.utils")
 def oceancolorrc():
     """Path to custom configuration
 
-    Default path is at the user's home directory .config/oceancolor
+    Define the path to the user custom configuration, such as EarthData's
+    username to be used.
+
+    The default path is at the user's home directory .config/oceancolor, but
+    that can be modified by defining an environment variable OCEANCOLOR_DIR.
+
+    Example
+    -------
+    >>> import os.path
+    >>> print(os.path.join(oceancolorrc(), 'main.ini'))
+    /Users/guilherme/.config/oceancolor/main.ini
     """
     path = os.path.expanduser(os.getenv("OCEANCOLOR_DIR", "~/.config/oceancolor"))
     return path
