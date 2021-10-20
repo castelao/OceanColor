@@ -146,39 +146,65 @@ def bloom_filter(
     track: Sequence[Dict],
     sensor: [Sequence[str], str],
     dtype: str,
-    dt_tol: Optional[Any] = None,
-    dL_tol: Optional[Any] = None,
+    dt_tol: float,
+    dL_tol: float,
 ):
-    """
+    """Determine granules (filenames) that might have data of interest
 
-    This generator keeps track of previous responses to avoid duplicates. When
-    running with track composed of multiple waypoints, it is possible for a
-    target to potentially match multiple waypoints, but each target is returned
-    only once.
+    This function returns the granules that might be within the searching
+    window around the given waypoint or track.
 
-    In the case of spaced tracks, let's say every Sunday, with a small dt_tol,
-    the search is broken in smaller chunks to avoid return the middle of the
-    week as potential targets. The operation here is light but it can make
-    a big difference for the next step that uses this output.
+    A bloom filter returns False or maybe True, and it is typically an
+    approximation significantly lighter than the the precise solution.
+    Therefore, it can be used to eliminate what is a guarantee to be False
+    with a reduced cost. For the OceanColor package this is useful since
+    it reduces the searching space before applying a more precise searching
+    criterion that is computationally or I/O intensive.
+
+    Parameters
+    ----------
+    track : sequence of dict_like
+        A sequence of waypoints, where each waypoint contains time, lat, and
+        lon.
+    sensor : str or sequence of str
+        Instrument(s) used, such as snpp or aqua. For more than one instrument
+        at once, use a list of.
+    dtype : str
+        Data processing level currently limited to L2 or L3m.
+    dt_tol : float
+        Time tolerance around the given waypoint(s).
+    dL_tol : float
+        Distance tolerance around the given waypoint(s).
+
+    Yields
+    -------
+    str
+        Granule name
 
     Notes
     -----
-    - The lowest level function that receives a track as input should implement
-      an auto split. If the track extends in a large area, it should be split,
-      and if the time coverage is too large, also split it. Most probably the
-      time coverage will be significantly reduced.
-      For instance, the full history of an Argo profiler would result in a huge
-      list of granules, where the end of the time series should not include the
-      region where it started. So split in half the trajectory and check again.
+    This generator has a memory to avoid duplicates.  When running for a track
+    composed of multiple waypoints, it is possible for a target to match
+    multiple waypoints, but each target (granule) is returned only once.
+
+    The search is around the waypoints, not the tracks. In the case of spaced
+    tracks, let us say one fixed location every Sunday, with a small dt_tol of
+    12 hours, the middle of the week is ignored as potential targets. For
+    instance, the full history of an Argo profiler would result in a huge list
+    of granules, where the end of the time series should not include the region
+    where it started.
       
     Examples
     --------
-    track = [{"time": np.datetime64('2019-05-01'), "lat": 18, "lon": 38}]
-    track = pd.DataFrame(track)
-    for f in bloom_filter(track, sensor='aqua', dtype='L2', dt_tol=np.timedelta64(36, 'h'), dL_tol=10e3):
-        print(f)
+    >>> track = [{"time": np.datetime64('2019-05-01'), "lat": 18, "lon": 38}]
+    >>> for f in bloom_filter(track, sensor='snpp', dtype='L2', dt_tol=np.timedelta64(36, 'h'), dL_tol=10e3):
+            print(f)
+    V2019120103000.L2_SNPP_OC.nc
+    V2019121100600.L2_SNPP_OC.nc
+    V2019121101200.L2_SNPP_OC.nc
+    V2019122094800.L2_SNPP_OC.nc
+    V2019122113000.L2_SNPP_OC.nc
 
-    sensor='snpp'    
     """
     if isinstance(sensor, list):
         for s in sensor:
@@ -221,6 +247,9 @@ def bloom_filter(
         rule = re.compile(rule)
 
     memory = []
+    # Temporary solution. Scan each waypoint. To work with a track at once it
+    # would require to define a buffer around it, then creating a polygon.
+    # Plus it would require to split on space such as it is done on time.
     for _, p in track.iterrows():
         temporal = "{},{}".format(
             datetime_as_string(stime, unit="s"),
