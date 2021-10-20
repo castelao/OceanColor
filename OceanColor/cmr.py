@@ -139,6 +139,7 @@ def search_criteria(**kwargs):
             criteria = {"short_name": "MODIST_L3m_CHL", "provider": "OB_DAAC"}
     else:
         raise ValueError
+    module_logger.debug("searching criteria: {}".format(criteria))
     return criteria
 
 
@@ -260,6 +261,7 @@ def bloom_filter(
             if (rule is None) or rule.search(g):
                 if g not in memory:
                     memory.append(g)
+                    module_logger.debug("New result from bloom_filter: {}".format(g))
                     yield g
 
 
