@@ -24,10 +24,10 @@ module_logger = logging.getLogger("OceanColor.storage")
 class OceanColorDB(object):
     """An abstraction of NASA's Ocean Color database
 
-    It uses a backend to actually handle the data.
-
-    In the future develop a local cache so it wouldn't need to download more
-    than once the same file.
+    While OceanColorDB provides access to NASA's ocean color data, it is the
+    backend that manages the data accessed. Currently, there is only one
+    backend based on local files and directories. But it is planned more
+    alternatives such as AWS S3 storage.
 
     Examples
     --------
@@ -36,13 +36,11 @@ class OceanColorDB(object):
     >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
     >>> ds.attrs
 
-    ToDo
-    ----
-    - Generalize the backend entry. The idea in the future is to create other
-      backends like S3.
-    - Think about the best way to define the backend. Maybe add an optional
-      parameter path, which if available is used to define the backend as a
-      FileSystem.
+    Notes
+    -----
+    Think about the best way to define the backend. Maybe add an optional
+    parameter path, which if available is used to define the backend as a
+    FileSystem.
     """
 
     lock = threading.Lock()
@@ -54,10 +52,12 @@ class OceanColorDB(object):
         Parameters
         ----------
         username: str
+            The username registered with EarthData
         password: str
-        download: bool
-            Download new data when required, otherwise limit to the already
-            available datasets.
+            The password associated the the username
+        download: bool, optional
+            Download new data when required, otherwise limits to the already
+            available datasets. Default is true, i.e. download when necessary.
         """
         self.username = username
         self.password = password
