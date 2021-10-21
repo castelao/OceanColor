@@ -381,8 +381,8 @@ def inrange_L2(track, ds, dL_tol: float, dt_tol):
     return output
 
 
-def inrange_L3m(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
-    """All satellite L3 mapped pixels in range of a track
+def inrange_L3m(track, ds, dL_tol: float, dt_tol):
+    """Search an L3 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
@@ -403,14 +403,20 @@ def inrange_L3m(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     dt_tol: np.timedelta64
         Time difference to be considered a matchup.
 
-
     Returns
     -------
     matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row.
+
+    See Also
+    --------
+    inrange : Search a dataset for pixels within a range
+    inrange_L2 : Search an L2 dataset for pixels within a range
 
     Notes
     -----
-    Since L3M product is daily means, dt=0 means a profile on the same day of
+    Since L3M product are daily means, dt=0 means a profile on the same day of
     the satellite measurement, while + 3hrs means the hour 3 of the following
     day. Further, dt_tol=0 limits to satellite mean for the same day of the
     profile, while dt_tol=12 limits to the day of the profile plus the previous
