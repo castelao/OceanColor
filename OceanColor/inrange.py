@@ -264,8 +264,8 @@ def inrange(track, ds, dL_tol: float, dt_tol, queue=None):
         module_logger.info("No matchups from {}".format(ds.product_name))
 
 
-def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
-    """All satellite L2 pixels in range of a track
+def inrange_L2(track, ds, dL_tol: float, dt_tol):
+    """Search an L2 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
@@ -278,17 +278,24 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         this DataFrame will be used as the reference on for the output.
 
     ds: xr.Dataset
-        L2
+        An L2 granule, which is usually loaded from a netCDF.
 
     dL_tol: float
-        Distance in meters around a waypoint to be considered a matchup.
+        Maximum distance in meters from a waypoint to be considered a matchup.
 
     dt_tol: np.timedelta64
-        Time difference to be considered a matchup.
+        Maximum accepted time difference to be considered a matchup.
 
     Returns
     -------
     matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row.
+
+    See Also
+    --------
+    inrange : Search a dataset for pixels within a range
+    inrange_L3m : Search an L3m dataset for pixels within a range
     """
     assert ds.processing_level == "L2", "inrange_L2() requires L2 satellite data"
     output = pd.DataFrame()
