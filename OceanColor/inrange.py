@@ -199,12 +199,49 @@ class InRange(object):
         queue.put("END")
 
 
-def inrange(track, ds, dL_tol, dt_tol, queue=None):
-    """Search for all pixels in a time/space range of a track
+def inrange(track, ds, dL_tol: float, dt_tol, queue=None):
+    """Search a granule for pixels within range (time/space) of a track
 
-    This is the general function that will choose which procedure to apply
+    For a given sequence of waypoints (`track`), it returns all satellite
+    pixels (data) from `ds` which are at most `dL_tol` (distance tolerance)
+    and `dt_tol` (time tolerance) from one of the waypoints. The output
+    includes lat and lon of the found pixel, plus dL (distance), and dt
+    (difference in time) between the matchup pixel - waypoint.
+
+    This is the generic function that will choose which procedure to apply
     according to the processing level of the image, since they are structured
     in different projections.
+
+    Parameters
+    ----------
+    track: pandas.DataFrame
+        A collection of waypoints containing {time, lat, lon}. The index on
+        this DataFrame will be used as the reference on for the output.
+
+    ds: xarray.Dataset
+        An L2 granule, which is usually loaded from a netCDF.
+
+    dL_tol: float
+        Maximum distance in meters from a waypoint to be considered a matchup.
+
+    dt_tol: np.timedelta64
+        Maximum accepted time difference to be considered a matchup.
+
+    queue: Queue.queue, optional
+        If given, the results are sent to this queue.
+
+    Returns
+    -------
+    matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row. If queue is given as an input, the
+        returns are instead transmitted to that queue and the function
+        returns None instead.
+
+    See Also
+    --------
+    inrange_2 : Search an L2 dataset for pixels within a range
+    inrange_L3m : Search an L3m dataset for pixels within a range
     """
     assert ds.processing_level in ("L2", "L3 Mapped")
     if ds.processing_level == "L2":
