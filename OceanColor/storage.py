@@ -228,14 +228,28 @@ class FileSystem(object):
 
 
 class Filename(object):
-    """Parse the implicit information on NASA's filename
+    """Parse implicit information on NASA's filename
 
-    NASA's data filename, and granules, follows a standard that can be
-    used to infer some information, such as the instrument or the year of
-    the measuremnt. This class is used in support for the FileSystem
-    backend to guide its directory structure.
+    NASA's data filename, and granules, follows a logical standard that can be
+    used to infer some information, such as instrument or year of the
+    measuremnt.
+
+    This class is used in support for the FileSystem backend to guide its
+    directory structure.
     """
     def __init__(self, filename: str):
+        """
+        Parameters
+        ----------
+        filename : str
+            A filename following NASA's OceanColor standard
+
+        Examples
+        --------
+        >>> f = Filename("A2019109.L3m_DAY_CHL_chlor_a_4km.nc")
+        >>> f.mission
+        MODIS-Aqua
+        """
         self.filename = filename
         self.attrs = parse_filename(filename)
 
