@@ -267,16 +267,24 @@ class Filename(object):
         return os.path.join(self.dirname, self.filename)
 
 
-def parse_filename(filename):
+def parse_filename(filename: str):
     """Parse an OceanColor data filename
 
-    Parse filenames to extract information like the date or platform related
-    to the given filename.
+    There is a logical standard on the filenames and this function takes
+    advantage of that to extract information such as date, processing level,
+    and platform.
 
     Parameters
     ----------
     filename : str
         An Ocean Color dataset filename.
+
+    Returns
+    -------
+    dict :
+        A dictionary with fields such as platform, year, day of year (doy),
+        time, mode (data processing level), and instrument. It returns None
+        when the field is not available.
 
     Notes
     -----
