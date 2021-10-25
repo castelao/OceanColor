@@ -114,6 +114,14 @@ class OceanColorDB(object):
 
     def backend(self):
         """Placeholder to reinforce the use of a backend
+
+        While OceanColorDB manages the access to NASA's database and does the
+        front end with the user, the backend actually manages the data.
+
+        See Also
+        --------
+        OceanColor.storage.FileSystem :
+            A storage backend based on directories and files
         """
         module_logger.critical(
             "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
