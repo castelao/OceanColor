@@ -224,7 +224,7 @@ class FileSystem(object):
         else:
             return False
 
-    def path(self, filename):
+    def path(self, filename: str):
         """Standard path for the given filename
 
         Ocean Color filenames follow certain standards that can be used to
