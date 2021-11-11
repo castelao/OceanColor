@@ -24,8 +24,8 @@ Search and subset NASA Ocean Color data
 * Documentation: https://ocean-color.readthedocs.io.
 
 NASA provides great resources to search and access its data. This package is
-intended to fill a gap on obtaining chlorophyll data to be compared with in
-situ observations by searching pixels within given time and distance tolerance.
+intended to fill a gap in obtaining chlorophyll data to be compared with in
+situ observations by searching pixels within a given time and distance tolerance.
 For instance, it is used to calibrate chlorophyll fluorescence measurements
 from Spray underwater gliders.
 
