@@ -1,14 +1,25 @@
 cff-version: 1.2.0
-title: "NASA (unofficial) Ocean Color: A Python package to search and recover nearby data"
+title: "A Python package to search and fetch NASA Ocean Color data within range of waypoints of interest"
 message: If you use this software, please cite it using these metadata.
-title: 'A library to search matchups on NASA Ocean Color data'
 authors:
-- given-names: Guilherme
-  family-names: Castelao
-  affiliation: Scripps Institution of Oceanography - UC San Diego
-  orcid: https://orcid.org/0000-0002-6765-0708
+  - given-names: Guilherme
+    family-names: Castelao
+    affiliation: Scripps Institution of Oceanography - UC San Diego
+    orcid: https://orcid.org/0000-0002-6765-0708
 version: 0.0.9
 doi: 10.5281/zenodo.4646628
 date-released: 2021-03-21
 repository-code: https://github.com/castelao/CoTeDe
 license: BSD-3 Clause
+references:
+  - title: "numpy"
+    type: article
+    doi: 10.1038/s41586-020-2649-2
+  - title: "pandas"
+    type: software
+    version: 1.3.3
+    doi: 10.5281/zenodo.5501881
+  - title: "xarray"
+    type: software
+    version: 0.19.0
+    doi: 10.5281/zenodo.5130718
