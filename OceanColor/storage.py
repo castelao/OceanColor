@@ -175,7 +175,15 @@ class FileSystem(object):
     hundreds of files in the same directory.
     """
 
-    def __init__(self, root):
+    def __init__(self, root: str):
+        """Initiate a FileSystem backend
+
+        Paremeters
+        ----------
+        root : str
+            Base path where to build/find the local data structure. All data
+            is contained inside this directory.
+        """
         module_logger.debug("Using FileSystem as storage at: {}".format(root))
 
         if not os.path.isdir(root):
