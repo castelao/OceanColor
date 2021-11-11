@@ -69,14 +69,13 @@ class InRange(object):
         npes : int, optional
             Number of maximum parallel jobs
         """
-        module_logger.info("Initializing InRange")
+        module_logger.info("Initializing inrange.InRange")
         if npes is None:
             npes = 3
         self.npes = npes
-        module_logger.debug("Initializing InRange with npes={}".format(npes))
-        n_queue = int(3 * npes)
+        module_logger.debug("Initializing searching engine with npes={}".format(npes))
         self.queue = queue.Queue(int(3 * npes))
-        module_logger.debug("Initializing InRange with a queue size {}".format(npes))
+        module_logger.debug("Initializing searching engine with a queue size {}".format(npes))
 
         self.db = OceanColorDB(username, password)
         self.db.backend = FileSystem(path)
