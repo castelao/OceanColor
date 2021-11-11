@@ -74,7 +74,9 @@ class OceanColorDB(object):
         except KeyError:
             module_logger.debug("{} is not on the storage".format(key))
             if not self.download:
-                module_logger.info("{} is not available and download is off.".format(key))
+                module_logger.info(
+                    "{} is not available and download is off.".format(key)
+                )
                 raise KeyError
 
         module_logger.debug("Downloading from Ocean Color: {}".format(key))
