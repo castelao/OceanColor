@@ -199,7 +199,7 @@ class InRange(object):
         queue.put("END")
 
 
-def inrange(track, ds, dL_tol: float, dt_tol, queue=None):
+def matchup(track, ds, dL_tol: float, dt_tol, queue=None):
     """Search a granule for pixels within range (time/space) of a track
 
     For a given sequence of waypoints (`track`), it returns all satellite
@@ -240,16 +240,16 @@ def inrange(track, ds, dL_tol: float, dt_tol, queue=None):
 
     See Also
     --------
-    inrange_2 : Search an L2 dataset for pixels within a range
-    inrange_L3m : Search an L3m dataset for pixels within a range
+    matchup_L2 : Search an L2 dataset for pixels within a range
+    matchup_L3m : Search an L3m dataset for pixels within a range
     """
     assert ds.processing_level in ("L2", "L3 Mapped")
     if ds.processing_level == "L2":
-        module_logger.debug("processing_level L2, using inrange_L2")
-        output = inrange_L2(track, ds, dL_tol, dt_tol)
+        module_logger.debug("processing_level L2, using matchup_L2")
+        output = matchup_L2(track, ds, dL_tol, dt_tol)
     elif ds.processing_level == "L3 Mapped":
-        module_logger.debug("processing_level L3 mapped, using inrange_L3m")
-        output = inrange_L3m(track, ds, dL_tol, dt_tol)
+        module_logger.debug("processing_level L3 mapped, using matchup_L3m")
+        output = matchup_L3m(track, ds, dL_tol, dt_tol)
     else:
         return
 
@@ -264,7 +264,7 @@ def inrange(track, ds, dL_tol: float, dt_tol, queue=None):
         module_logger.info("No matchups from {}".format(ds.product_name))
 
 
-def inrange_L2(track, ds, dL_tol: float, dt_tol):
+def matchup_L2(track, ds, dL_tol: float, dt_tol):
     """Search an L2 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
@@ -294,10 +294,10 @@ def inrange_L2(track, ds, dL_tol: float, dt_tol):
 
     See Also
     --------
-    inrange : Search a dataset for pixels within a range
-    inrange_L3m : Search an L3m dataset for pixels within a range
+    matchup : Search a dataset for pixels within a range
+    matchup_L3m : Search an L3m dataset for pixels within a range
     """
-    assert ds.processing_level == "L2", "inrange_L2() requires L2 satellite data"
+    assert ds.processing_level == "L2", "matchup_L2() requires L2 satellite data"
     output = pd.DataFrame()
 
     # Removing the Zulu part of the date definition. Better double
@@ -381,7 +381,7 @@ def inrange_L2(track, ds, dL_tol: float, dt_tol):
     return output
 
 
-def inrange_L3m(track, ds, dL_tol: float, dt_tol):
+def matchup_L3m(track, ds, dL_tol: float, dt_tol):
     """Search an L3 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
@@ -411,8 +411,8 @@ def inrange_L3m(track, ds, dL_tol: float, dt_tol):
 
     See Also
     --------
-    inrange : Search a dataset for pixels within a range
-    inrange_L2 : Search an L2 dataset for pixels within a range
+    matchup : Search a dataset for pixels within a range
+    matchup_L2 : Search an L2 dataset for pixels within a range
 
     Notes
     -----
@@ -450,7 +450,7 @@ def inrange_L3m(track, ds, dL_tol: float, dt_tol):
 
     assert (
         ds.processing_level == "L3 Mapped"
-    ), "inrange_L3m() requires L3 Mapped satellite data"
+    ), "matchup_L3m() requires L3 Mapped satellite data"
 
     # Removing the Zulu part of the date definition. Better double
     #   check if it is UTC and then remove the tz.
