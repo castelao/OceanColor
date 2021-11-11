@@ -81,7 +81,7 @@ class OceanColorDB(object):
 
         module_logger.debug("Downloading from Ocean Color: {}".format(key))
         # Probably move this reading from remote to another function
-        content = self.remote_content(key)
+        content = self._remote_content(key)
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
@@ -130,8 +130,8 @@ class OceanColorDB(object):
         )
         raise NotImplementedError("Must define a backend for OceanColorDB")
 
-    def remote_content(self, filename, t_min=4, t_random=4):
-        """Read a remote file with minimum time between downloads
+    def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
+        """Read a remote file with a minimum time between downloads
 
         NASA monitors the downloads and excessive activity is temporarily
         banned, so this function guarantees a minimum time between downloads
