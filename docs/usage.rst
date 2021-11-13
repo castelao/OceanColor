@@ -12,7 +12,7 @@ Along this manual, whenever you see <earthdata-username> & <earthdata-password> 
 Inside Python
 -------------
 
-To use NASA Ocean Color in a project::
+To use Ocean Color in a project::
 
     import OceanColor
 

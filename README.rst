@@ -1,6 +1,6 @@
-================
-NASA Ocean Color
-================
+===========
+Ocean Color
+===========
 
 .. image:: https://zenodo.org/badge/318619654.svg
    :target: https://zenodo.org/badge/latestdoi/318619654
