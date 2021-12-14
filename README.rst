@@ -21,7 +21,7 @@ Ocean Color
 Search and subset NASA Ocean Color data
 
 * Free software: BSD license
-* Documentation: https://ocean-color.readthedocs.io.
+* Documentation: https://oceancolor.readthedocs.io.
 
 NASA provides great resources to search and access its data. This package is
 intended to fill a gap in obtaining chlorophyll data to be compared with in
