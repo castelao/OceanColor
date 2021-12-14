@@ -15,8 +15,8 @@ Ocean Color
 .. image:: https://github.com/castelao/OceanColor/actions/workflows/ci.yml/badge.svg
         :target: https://github.com/castelao/OceanColor/actions
 
-.. image:: https://binder.pangeo.io/badge_logo.svg
-   :target: https://binder.pangeo.io/v2/gh/castelao/OceanColor/main?filepath=docs%2Fnotebooks%2F
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/castelao/OceanColor/main?filepath=docs%2Fnotebooks
 
 Search and subset NASA Ocean Color data
 
