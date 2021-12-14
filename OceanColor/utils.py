@@ -11,21 +11,39 @@ module_logger = logging.getLogger("OceanColor.utils")
 def oceancolorrc():
     """Path to custom configuration
 
-    Default path is at the user's home directory .config/oceancolor
+    Define the path to the user custom configuration, such as EarthData's
+    username to be used.
+
+    The default path is at the user's home directory .config/oceancolor, but
+    that can be modified by defining an environment variable OCEANCOLOR_DIR.
+
+    Example
+    -------
+    >>> import os.path
+    >>> print(os.path.join(oceancolorrc(), 'main.ini'))
+    /Users/guilherme/.config/oceancolor/main.ini
     """
     path = os.path.expanduser(os.getenv("OCEANCOLOR_DIR", "~/.config/oceancolor"))
     return path
 
 
-def decode_L2_flagmask(flag_mask):
+def decode_L2_flagmask(flag_mask: int):
     """Decode Ocean Color flag mask
 
-    Some Ocean Color products use bitwise quality flags. This function
-    converts those bits encoded as an integer into a list of flags labels,
-    i.e. binary 10 values 2 in decimal and means second flag active which
-    is LAND.
+    Some Ocean Color products use bitwise quality flags. This function converts
+    those bits parsed as an integer into a list of flag labels. For instance,
+    the binary 0010 values 2 in decimal and means that the second flag (LAND)
+    is active.
 
-    This function can be useful help to decide which data to use.
+    Parameters
+    ----------
+    flag_mask : int
+        The bitwise flag parsed as uint
+
+    Returns
+    -------
+    list of str
+        List of flags activated byt the given `flag_mask`
 
     References
     ----------
@@ -57,11 +75,10 @@ def decode_L2_flagmask(flag_mask):
       - ATMWARN: Atmospheric correction is suspect
       - NAVFAIL: Navigation failure
       - HIPOL: High degree of polarization determined
-
-    Full labels list and values
-    flag_masks = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, -2147483648 ;
-flag_labels = "ATMFAIL LAND PRODWARN HIGLINT HILT HISATZEN COASTZ SPARE STRAYLIGHT CLDICE COCCOLITH TURBIDW HISOLZEN SPARE LOWLW CHLFAIL NAVWARN ABSAER SPARE MAXAERITER MODGLINT CHLWARN ATMWARN SPARE SEAICE NAVFAIL FILTER SPARE BOWTIEDEL HIPOL PRODFAIL SPARE" ;
     """
+
+    # Full labels list and values
+    # flag_masks = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, -2147483648 ;
     flag_labels = "ATMFAIL LAND PRODWARN HIGLINT HILT HISATZEN COASTZ SPARE STRAYLIGHT CLDICE COCCOLITH TURBIDW HISOLZEN SPARE LOWLW CHLFAIL NAVWARN ABSAER SPARE MAXAERITER MODGLINT CHLWARN ATMWARN SPARE SEAICE NAVFAIL FILTER SPARE BOWTIEDEL HIPOL PRODFAIL SPARE" ;
     flag_labels = flag_labels.split()
     flags = []

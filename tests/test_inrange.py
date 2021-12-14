@@ -5,7 +5,7 @@ from numpy import datetime64, timedelta64
 import os
 from pandas import DataFrame
 
-from OceanColor.inrange import inrange_L2, inrange_L3m, inrange
+from OceanColor.inrange import matchup_L2, matchup_L3m, matchup
 from OceanColor.storage import OceanColorDB, FileSystem
 from OceanColor.OceanColor import InRange
 
@@ -16,19 +16,19 @@ db = OceanColorDB(username, password)
 db.backend = FileSystem('./')
 
 
-def test_inrange_L2():
+def test_matchup_L2():
     ds = db["A2017012213500.L2_LAC_OC.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
         {"time": datetime64("2017-01-12 20:00:00"), "lat": 34, "lon": -126}])
-    data = inrange_L2(track, ds, dL_tol, dt_tol)
+    data = matchup_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
     assert data.index.size == 448
 
 
-def test_inrange_L2_day_line():
+def test_matchup_L2_day_line():
     """Test nearby the international day line from both sides
     """
     ds = db["V2017013002400.L2_SNPP_OC.nc"]
@@ -36,7 +36,7 @@ def test_inrange_L2_day_line():
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
         {"time": datetime64("2017-01-12 20:00:00"), "lat": 60, "lon": 179.99}])
-    data = inrange_L2(track, ds, dL_tol, dt_tol)
+    data = matchup_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
     assert data.index.size == 194
@@ -46,7 +46,7 @@ def test_inrange_L2_day_line():
     # From the other side
     track = DataFrame([
         {"time": datetime64("2017-01-12 20:00:00"), "lat": 60, "lon": -179.99}])
-    data = inrange_L2(track, ds, dL_tol, dt_tol)
+    data = matchup_L2(track, ds, dL_tol, dt_tol)
 
     # Dummy check
     assert data.index.size == 197
@@ -54,26 +54,26 @@ def test_inrange_L2_day_line():
     assert data.lon.max() > 0
 
 
-def test_inrange_L3m():
+def test_matchup_L3m():
     ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
         {"time": datetime64("2017-01-12 20:00:00"), "lat": 34, "lon": -126}])
-    data = inrange_L3m(track, ds, dL_tol, dt_tol)
+    data = matchup_L3m(track, ds, dL_tol, dt_tol)
 
     # Dummy check
     assert data.index.size == 7
     assert data.size == 42
 
 
-def test_inrange():
+def test_matchup():
     ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
         {"time": datetime64("2017-01-12 20:00:00"), "lat": 34, "lon": -126}])
-    data = inrange(track, ds, dL_tol, dt_tol)
+    data = matchup(track, ds, dL_tol, dt_tol)
 
     # Dummy check
     assert data.index.size == 7

@@ -1,5 +1,5 @@
-Welcome to NASA Ocean Color's documentation!
-============================================
+Welcome to Ocean Color's documentation!
+=======================================
 
 .. toctree::
    :maxdepth: 2

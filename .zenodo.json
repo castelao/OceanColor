@@ -6,6 +6,7 @@
       "orcid": "0000-0002-6765-0708"
     }
   ],
+  "license": "BSD license",
   "contributors": [
     {
       "type": "Sponsor",
@@ -15,5 +16,82 @@
       "type": "Sponsor",
       "name": "Southern California Coastal Ocean Observing System"
     }
-  ]
+  ],
+  "related_identifiers": [
+        {
+            "scheme": "doi",
+            "identifier": "10.1038/s41586-020-2649-2",
+            "relation": "cites",
+            "resource_type": {
+                "type": "publication",
+                "subtype": "article"
+            }
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5281/zenodo.5501881",
+            "relation": "cites",
+            "resource_type": "software"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5281/zenodo.5130718",
+            "relation": "cites",
+            "resource_type": "software"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5281/zenodo.5770407",
+            "relation": "cites",
+            "resource_type": "software"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.21238/S8SPRAY1618",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/ORBVIEW-2/SEAWIFS/L2/OC/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/TERRA/MODIS/L2/OC/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/TERRA/MODIS/L3M/CHL/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/AQUA/MODIS/L2/OC/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/AQUA/MODIS/L3M/CHL/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/NPP/VIIRS/L2/OC/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.5067/NPP/VIIRS/L3M/CHL/2018",
+            "relation": "cites",
+            "resource_type": "dataset"
+        }
+    ]
 }

@@ -1,6 +1,6 @@
-================
-NASA Ocean Color
-================
+===========
+Ocean Color
+===========
 
 .. image:: https://zenodo.org/badge/318619654.svg
    :target: https://zenodo.org/badge/latestdoi/318619654
@@ -15,8 +15,8 @@ NASA Ocean Color
 .. image:: https://github.com/castelao/OceanColor/actions/workflows/ci.yml/badge.svg
         :target: https://github.com/castelao/OceanColor/actions
 
-.. image:: https://binder.pangeo.io/badge_logo.svg
-   :target: https://binder.pangeo.io/v2/gh/castelao/OceanColor/main?filepath=docs%2Fnotebooks%2F
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/castelao/OceanColor/main?filepath=docs%2Fnotebooks
 
 Search and subset NASA Ocean Color data
 
@@ -24,8 +24,8 @@ Search and subset NASA Ocean Color data
 * Documentation: https://ocean-color.readthedocs.io.
 
 NASA provides great resources to search and access its data. This package is
-intended to fill a gap on obtaining chlorophyll data to be compared with in
-situ observations by searching pixels within given time and distance tolerance.
+intended to fill a gap in obtaining chlorophyll data to be compared with in
+situ observations by searching pixels within a given time and distance tolerance.
 For instance, it is used to calibrate chlorophyll fluorescence measurements
 from Spray underwater gliders.
 

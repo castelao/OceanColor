@@ -24,10 +24,10 @@ module_logger = logging.getLogger("OceanColor.storage")
 class OceanColorDB(object):
     """An abstraction of NASA's Ocean Color database
 
-    It uses a backend to actually handle the data.
-
-    In the future develop a local cache so it wouldn't need to download more
-    than once the same file.
+    While OceanColorDB provides access to NASA's ocean color data, it is the
+    backend that manages the data accessed. Currently, there is only one
+    backend based on local files and directories. But it is planned more
+    alternatives such as AWS S3 storage.
 
     Examples
     --------
@@ -36,13 +36,11 @@ class OceanColorDB(object):
     >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
     >>> ds.attrs
 
-    ToDo
-    ----
-    - Generalize the backend entry. The idea in the future is to create other
-      backends like S3.
-    - Think about the best way to define the backend. Maybe add an optional
-      parameter path, which if available is used to define the backend as a
-      FileSystem.
+    Notes
+    -----
+    Think about the best way to define the backend. Maybe add an optional
+    parameter path, which if available is used to define the backend as a
+    FileSystem.
     """
 
     lock = threading.Lock()
@@ -54,10 +52,12 @@ class OceanColorDB(object):
         Parameters
         ----------
         username: str
+            The username registered with EarthData
         password: str
-        download: bool
-            Download new data when required, otherwise limit to the already
-            available datasets.
+            The password associated the the username
+        download: bool, optional
+            Download new data when required, otherwise limits to the already
+            available datasets. Default is true, i.e. download when necessary.
         """
         self.username = username
         self.password = password
@@ -74,12 +74,14 @@ class OceanColorDB(object):
         except KeyError:
             module_logger.debug("{} is not on the storage".format(key))
             if not self.download:
-                module_logger.info("{} is not available and download is off.".format(key))
+                module_logger.info(
+                    "{} is not available and download is off.".format(key)
+                )
                 raise KeyError
 
         module_logger.debug("Downloading from Ocean Color: {}".format(key))
         # Probably move this reading from remote to another function
-        content = self.remote_content(key)
+        content = self._remote_content(key)
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
@@ -113,10 +115,23 @@ class OceanColorDB(object):
         return self.backend.__contains__(item)
 
     def backend(self):
+        """Placeholder to reinforce the use of a backend
+
+        While OceanColorDB manages the access to NASA's database and does the
+        front end with the user, the backend actually manages the data.
+
+        See Also
+        --------
+        OceanColor.storage.FileSystem :
+            A storage backend based on directories and files
+        """
+        module_logger.critical(
+            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
+        )
         raise NotImplementedError("Must define a backend for OceanColorDB")
 
-    def remote_content(self, filename, t_min=4, t_random=4):
-        """Read a remote file with minimum time between downloads
+    def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
+        """Read a remote file with a minimum time between downloads
 
         NASA monitors the downloads and excessive activity is temporarily
         banned, so this function guarantees a minimum time between downloads
@@ -160,7 +175,15 @@ class FileSystem(object):
     hundreds of files in the same directory.
     """
 
-    def __init__(self, root):
+    def __init__(self, root: str):
+        """Initiate a FileSystem backend
+
+        Paremeters
+        ----------
+        root : str
+            Base path where to build/find the local data structure. All data
+            is contained inside this directory.
+        """
         module_logger.debug("Using FileSystem as storage at: {}".format(root))
 
         if not os.path.isdir(root):
@@ -201,7 +224,7 @@ class FileSystem(object):
         else:
             return False
 
-    def path(self, filename):
+    def path(self, filename: str):
         """Standard path for the given filename
 
         Ocean Color filenames follow certain standards that can be used to
@@ -223,14 +246,28 @@ class FileSystem(object):
 
 
 class Filename(object):
-    """Parse the implicit information on NASA's filename
+    """Parse implicit information on NASA's filename
 
-    NASA's data filename, and granules, follows a standard that can be
-    used to infer some information, such as the instrument or the year of
-    the measuremnt. This class is used in support for the FileSystem
-    backend to guide its directory structure.
+    NASA's data filename, and granules, follows a logical standard that can be
+    used to infer some information, such as instrument or year of the
+    measuremnt.
+
+    This class is used in support for the FileSystem backend to guide its
+    directory structure.
     """
     def __init__(self, filename: str):
+        """
+        Parameters
+        ----------
+        filename : str
+            A filename following NASA's OceanColor standard
+
+        Examples
+        --------
+        >>> f = Filename("A2019109.L3m_DAY_CHL_chlor_a_4km.nc")
+        >>> f.mission
+        MODIS-Aqua
+        """
         self.filename = filename
         self.attrs = parse_filename(filename)
 
@@ -262,16 +299,24 @@ class Filename(object):
         return os.path.join(self.dirname, self.filename)
 
 
-def parse_filename(filename):
+def parse_filename(filename: str):
     """Parse an OceanColor data filename
 
-    Parse filenames to extract information like the date or platform related
-    to the given filename.
+    There is a logical standard on the filenames and this function takes
+    advantage of that to extract information such as date, processing level,
+    and platform.
 
     Parameters
     ----------
     filename : str
         An Ocean Color dataset filename.
+
+    Returns
+    -------
+    dict :
+        A dictionary with fields such as platform, year, day of year (doy),
+        time, mode (data processing level), and instrument. It returns None
+        when the field is not available.
 
     Notes
     -----

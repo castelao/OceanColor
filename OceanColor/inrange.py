@@ -29,30 +29,31 @@ except:
 
 
 class InRange(object):
-    """Search Ocean Color DB for pixels in range of defined positions
+    """Search and fetch Ocean Color pixels within range of given waypoints
 
     The satellite files are scanned in parallel in the background and checked
     against the given waypoints, so that it searches for the next matchup in
     advance before it is actually requested.
 
-    Example
-    -------
-    track = DataFrame([
-        {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81},
-        {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}
-        ])
+    Examples
+    --------
+    >>> track = DataFrame([
+            {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81},
+            {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}
+            ])
 
-    matchup = InRange(os.getenv("NASA_USERNAME"),
-                      os.getenv("NASA_PASSWORD"),
-                      './',
-                      npes=3)
-    matchup.search(track,
-                   sensor="aqua",
-                   dtype="L3m",
-                   dt_tol=timedelta64(12, 'h'),
-                   dL_tol=12e3)
-    for m in matchup:
-        print(m)
+    >>> engine = InRange(os.getenv("NASA_USERNAME"),
+                          os.getenv("NASA_PASSWORD"),
+                          './',
+                          npes=3)
+
+    >>> engine.search(track,
+                       sensor="aqua",
+                       dtype="L3m",
+                       dt_tol=timedelta64(12, 'h'),
+                       dL_tol=12e3)
+    >>> for m in engine:
+    >>>     print(m)
     """
 
     def __init__(self, username, password, path="./", npes=None):
@@ -68,14 +69,13 @@ class InRange(object):
         npes : int, optional
             Number of maximum parallel jobs
         """
-        module_logger.info("Initializing InRange")
+        module_logger.info("Initializing inrange.InRange")
         if npes is None:
             npes = 3
         self.npes = npes
-        module_logger.debug("Initializing InRange with npes={}".format(npes))
-        n_queue = int(3 * npes)
+        module_logger.debug("Initializing searching engine with npes={}".format(npes))
         self.queue = queue.Queue(int(3 * npes))
-        module_logger.debug("Initializing InRange with a queue size {}".format(npes))
+        module_logger.debug("Initializing searching engine with a queue size {}".format(npes))
 
         self.db = OceanColorDB(username, password)
         self.db.backend = FileSystem(path)
@@ -199,20 +199,57 @@ class InRange(object):
         queue.put("END")
 
 
-def inrange(track, ds, dL_tol, dt_tol, queue=None):
-    """Search for all pixels in a time/space range of a track
+def matchup(track, ds, dL_tol: float, dt_tol, queue=None):
+    """Search a granule for pixels within range (time/space) of a track
 
-    This is the general function that will choose which procedure to apply
+    For a given sequence of waypoints (`track`), it returns all satellite
+    pixels (data) from `ds` which are at most `dL_tol` (distance tolerance)
+    and `dt_tol` (time tolerance) from one of the waypoints. The output
+    includes lat and lon of the found pixel, plus dL (distance), and dt
+    (difference in time) between the matchup pixel - waypoint.
+
+    This is the generic function that will choose which procedure to apply
     according to the processing level of the image, since they are structured
     in different projections.
+
+    Parameters
+    ----------
+    track: pandas.DataFrame
+        A collection of waypoints containing {time, lat, lon}. The index on
+        this DataFrame will be used as the reference on for the output.
+
+    ds: xarray.Dataset
+        An L2 granule, which is usually loaded from a netCDF.
+
+    dL_tol: float
+        Maximum distance in meters from a waypoint to be considered a matchup.
+
+    dt_tol: np.timedelta64
+        Maximum accepted time difference to be considered a matchup.
+
+    queue: Queue.queue, optional
+        If given, the results are sent to this queue.
+
+    Returns
+    -------
+    matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row. If queue is given as an input, the
+        returns are instead transmitted to that queue and the function
+        returns None instead.
+
+    See Also
+    --------
+    matchup_L2 : Search an L2 dataset for pixels within a range
+    matchup_L3m : Search an L3m dataset for pixels within a range
     """
     assert ds.processing_level in ("L2", "L3 Mapped")
     if ds.processing_level == "L2":
-        module_logger.debug("processing_level L2, using inrange_L2")
-        output = inrange_L2(track, ds, dL_tol, dt_tol)
+        module_logger.debug("processing_level L2, using matchup_L2")
+        output = matchup_L2(track, ds, dL_tol, dt_tol)
     elif ds.processing_level == "L3 Mapped":
-        module_logger.debug("processing_level L3 mapped, using inrange_L3m")
-        output = inrange_L3m(track, ds, dL_tol, dt_tol)
+        module_logger.debug("processing_level L3 mapped, using matchup_L3m")
+        output = matchup_L3m(track, ds, dL_tol, dt_tol)
     else:
         return
 
@@ -227,8 +264,8 @@ def inrange(track, ds, dL_tol, dt_tol, queue=None):
         module_logger.info("No matchups from {}".format(ds.product_name))
 
 
-def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
-    """All satellite L2 pixels in range of a track
+def matchup_L2(track, ds, dL_tol: float, dt_tol):
+    """Search an L2 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
@@ -241,19 +278,26 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
         this DataFrame will be used as the reference on for the output.
 
     ds: xr.Dataset
-        L2
+        An L2 granule, which is usually loaded from a netCDF.
 
     dL_tol: float
-        Distance in meters around a waypoint to be considered a matchup.
+        Maximum distance in meters from a waypoint to be considered a matchup.
 
     dt_tol: np.timedelta64
-        Time difference to be considered a matchup.
+        Maximum accepted time difference to be considered a matchup.
 
     Returns
     -------
     matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row.
+
+    See Also
+    --------
+    matchup : Search a dataset for pixels within a range
+    matchup_L3m : Search an L3m dataset for pixels within a range
     """
-    assert ds.processing_level == "L2", "inrange_L2() requires L2 satellite data"
+    assert ds.processing_level == "L2", "matchup_L2() requires L2 satellite data"
     output = pd.DataFrame()
 
     # Removing the Zulu part of the date definition. Better double
@@ -337,8 +381,8 @@ def inrange_L2(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     return output
 
 
-def inrange_L3m(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
-    """All satellite L3 mapped pixels in range of a track
+def matchup_L3m(track, ds, dL_tol: float, dt_tol):
+    """Search an L3 Dataset for pixels within range of a track
 
     For a given data frame of waypoints, return all satellite data, including
     lat, lon, dL (distance), and dt (difference in time) in respect of all
@@ -359,14 +403,20 @@ def inrange_L3m(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
     dt_tol: np.timedelta64
         Time difference to be considered a matchup.
 
-
     Returns
     -------
     matchup: pd.DataFrame
+        All pixels within space and time range from the given track of
+        waypoints. One pixel per row.
+
+    See Also
+    --------
+    matchup : Search a dataset for pixels within a range
+    matchup_L2 : Search an L2 dataset for pixels within a range
 
     Notes
     -----
-    Since L3M product is daily means, dt=0 means a profile on the same day of
+    Since L3M product are daily means, dt=0 means a profile on the same day of
     the satellite measurement, while + 3hrs means the hour 3 of the following
     day. Further, dt_tol=0 limits to satellite mean for the same day of the
     profile, while dt_tol=12 limits to the day of the profile plus the previous
@@ -400,7 +450,7 @@ def inrange_L3m(track: Any, ds: Any, dL_tol: Any, dt_tol: Any):
 
     assert (
         ds.processing_level == "L3 Mapped"
-    ), "inrange_L3m() requires L3 Mapped satellite data"
+    ), "matchup_L3m() requires L3 Mapped satellite data"
 
     # Removing the Zulu part of the date definition. Better double
     #   check if it is UTC and then remove the tz.

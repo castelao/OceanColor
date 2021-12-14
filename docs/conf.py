@@ -56,7 +56,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'NASA Ocean Color'
+project = 'Ocean Color'
 copyright = "2018-{}, Guilherme Castelão".format(datetime.now().year)
 author = "Guilherme Castelão"
 
@@ -138,7 +138,7 @@ latex_elements = {
 # [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'OceanColor.tex',
-     'NASA Ocean Color Documentation',
+     'Ocean Color Documentation',
      'Guilherme Castelão', 'manual'),
 ]
 
@@ -149,7 +149,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'OceanColor',
-     'NASA Ocean Color Documentation',
+     'Ocean Color Documentation',
      [author], 1)
 ]
 
@@ -161,12 +161,21 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'OceanColor',
-     'NASA Ocean Color Documentation',
+     'Ocean Color Documentation',
      author,
      'OceanColor',
      'Search and fetch NASA Ocean Color data.',
      'Miscellaneous'),
 ]
 
+# Documents to append as an appendix to all manuals.
+#texinfo_appendices = []
 
+# If false, no module index is generated.
+#texinfo_domain_indices = True
 
+# How to display URL addresses: 'footnote', 'no', or 'inline'.
+#texinfo_show_urls = 'footnote'
+
+# If true, do not generate a @detailmenu in the "Top" node's menu.
+#texinfo_no_detailmenu = False
