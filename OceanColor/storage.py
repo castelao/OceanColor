@@ -21,6 +21,11 @@ from .gsfc import read_remote_file
 
 module_logger = logging.getLogger("OceanColor.storage")
 
+try:
+    import s3fs
+except:
+    module_logger.debug("s3fs library is not available")
+
 
 class OceanColorDB(object):
     """An abstraction of NASA's Ocean Color database
@@ -255,6 +260,65 @@ class FileSystem(object):
         '/data/MODIS-Aqua/L3m/2019/109/A2019109.L3m_DAY_CHL_chlor_a_4km.nc'
         """
         return os.path.join(self.root, Filename(filename).path)
+
+
+# class S3FileSystem(Backend):
+class S3FileSystem(object):
+    def __init__(self, root: str):
+        """
+        Parameters
+        ----------
+        root:
+            Something like: s3://mybucket/NASA/OBPG/
+
+         ds = xr.open_zarr("s3://public-data-raw/NASA/VIIRS-SNPP/L2/2017/012/V201
+    ...: 7012205400.L2_SNPP_OC.zarr")
+    Examples
+    --------
+    >>> db = OceanColorDB(username, password)
+    >>> db.backend = FileSystem('./')
+    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    >>> ds.attrs
+
+    Notes
+
+        """
+        self.root = root
+        self.fs = s3fs.S3FileSystem(anon=False)
+
+    def __getitem__(self, key):
+        access_point = self.path(key)
+
+        if key not in self:
+            module_logger.debug("Object not available: %", access_point)
+            raise KeyError
+
+        module_logger.debug("Openning remote: %", access_point)
+        ds = xr.open_zarr(access_point)
+        return ds
+
+    def __contains__(self, key: str):
+        try:
+            access_point = self.path(key)
+        except:
+            return False
+
+        return self.fs.exists(access_point)
+
+    def __setitem__(self, key, ds):
+        assert isinstance(ds, xr.Dataset)
+        access_point = self.path(key)
+
+        if key in self:
+            module_logger.error("Not ready to update an S3 object")
+        assert key not in self
+
+        store = s3fs.S3Map(root=access_point, s3 = self.fs)
+        ds.to_zarr(store=store, consolidated=True, mode='w')
+
+    def path(self, product_name: str):
+        p = os.path.join(self.root, Filename(product_name).path)
+        return p.replace(".nc", ".zarr")
 
 
 class Filename(object):
