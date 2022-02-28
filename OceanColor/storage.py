@@ -3,6 +3,7 @@
 Different backends allow for different ways to handle the data from NASA.
 """
 
+from abc import ABC
 from datetime import datetime, timedelta
 import logging
 import numpy as np
@@ -155,6 +156,17 @@ class OceanColorDB(object):
             self.lock.release()
 
         return content
+
+
+class BaseBackend(ABC):
+    def __contains__(self, index):
+        raise NotImplementedError("Missing __contains__(), not implemented")
+
+    def __getitem__(self, index):
+        raise NotImplementedError("Missing __getitem__ for this Backend")
+
+    def __setitem__(self, index, value):
+        raise NotImplementedError("Missing __setitem__ for this Backend")
 
 
 # db.backend
