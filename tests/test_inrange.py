@@ -1,8 +1,12 @@
 """Test module inrange
 """
 
+from datetime import datetime
+
 from numpy import datetime64, timedelta64
 import os
+
+import pandas as pd
 from pandas import DataFrame
 
 from OceanColor.inrange import matchup_L2, matchup_L3m, matchup
@@ -78,6 +82,22 @@ def test_matchup():
     # Dummy check
     assert data.index.size == 7
     assert data.size == 42
+
+
+def test_InRange_recent():
+  track = DataFrame([
+      {"time": datetime64(datetime.utcnow()) - timedelta64(1, 'D'), "lat": 18, "lon": -35},
+  ])
+
+  matchup = InRange(username, password, './', npes=3)
+  matchup.search(
+      track,
+      sensor='snpp',
+      dtype='L2',
+      dt_tol=timedelta64(12, 'h'),
+      dL_tol=12e3)
+  output = pd.concat([m for m in matchup])
+  assert output.len() > 0
 
 
 def test_InRange_early_termination():
