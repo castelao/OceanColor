@@ -54,5 +54,6 @@ setup(
     zip_safe=False,
     extras_require = {
         'parallel': ["loky>=2.8"],
+        's3':['s3fs>=2022.1.0', 'zarr>=2.8.1'],
     }
 )

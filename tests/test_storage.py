@@ -6,7 +6,7 @@ import os
 import pickle
 import pytest
 
-from OceanColor.storage import parse_filename, OceanColorDB, FileSystem
+from OceanColor.storage import parse_filename, OceanColorDB, FileSystem, S3Storage
 
 
 def test_parse_filename_AL2():
@@ -103,3 +103,7 @@ def test_no_download():
         return
     # It was not supposed to reach here
     raise
+
+def test_S3Storage_path():
+    backend = S3Storage("s3://mybucket/datadir")
+    assert backend.path("A2019109.L3m_DAY_CHL_chlor_a_4km.nc") == 's3://mybucket/datadir/MODIS-Aqua/L3m/2019/109/A2019109.L3m_DAY_CHL_chlor_a_4km.zarr'
