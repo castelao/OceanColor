@@ -301,11 +301,11 @@ class S3Storage(BaseStorage):
         xr.Dataset
         """
         if index not in self:
-            module_logger.debug("Object not available: %", index)
+            module_logger.debug("Object not available: %s", index)
             raise KeyError
 
         access_point = self.path(index)
-        module_logger.debug("Openning remote: %", access_point)
+        module_logger.debug("Openning remote: %s", access_point)
         ds = xr.open_zarr(access_point)
         return ds
 
