@@ -374,7 +374,7 @@ def matchup_L2(track, ds, dL_tol: float, dt_tol):
                 tmp = pd.DataFrame(tmp)
                 # Remove rows where all varnames are NaN
                 tmp = tmp[(~tmp[varnames].isna()).any(axis="columns")]
-                output = output.append(tmp, ignore_index=True)
+                output = pd.concat([output, tmp], ignore_index=True)
 
     if "product_name" in ds.attrs:
         output["product_name"] = ds.product_name
@@ -512,6 +512,6 @@ def matchup_L3m(track, ds, dL_tol: float, dt_tol):
         # tmp.dropna(inplace=True)
         # Remove rows where all varnames are NaN
         tmp = tmp[(~tmp[varnames].isna()).any(axis="columns")]
-        output = output.append(tmp, ignore_index=True)
+        output = pd.concat([output, tmp], ignore_index=True)
 
     return output
