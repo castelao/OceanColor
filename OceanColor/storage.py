@@ -270,47 +270,54 @@ class S3Storage(BaseStorage):
         Parameters
         ----------
         root:
-            Something like: s3://mybucket/NASA/OBPG/
+            The S3 root point, including bucket and key prefix
 
-         ds = xr.open_zarr("s3://public-data-raw/NASA/VIIRS-SNPP/L2/2017/012/V201
-    ...: 7012205400.L2_SNPP_OC.zarr")
-    Examples
-    --------
-    >>> db = OceanColorDB(username, password)
-    >>> db.backend = FileSystem('./')
-    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
-    >>> ds.attrs
-
-    Notes
-
+        Examples
+        --------
+        >>> backend = S3Storage('s3://mybucket/NASA/')
+        >>> 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc' in backend
         """
         self.root = root
         self.fs = s3fs.S3FileSystem(anon=False)
 
-    def __getitem__(self, key):
-        access_point = self.path(key)
+    def __contains__(self, index: str):
+        """Checks if the given index exists in the storage
 
-        if key not in self:
-            module_logger.debug("Object not available: %", access_point)
-            raise KeyError
-
-        module_logger.debug("Openning remote: %", access_point)
-        ds = xr.open_zarr(access_point)
-        return ds
-
-    def __contains__(self, key: str):
+        It doesn't actually recover the item, so it minimizes network
+        transfer.
+        """
         try:
-            access_point = self.path(key)
+            access_point = self.path(index)
         except:
             return False
 
         return self.fs.exists(access_point)
 
-    def __setitem__(self, key, ds):
-        assert isinstance(ds, xr.Dataset)
-        access_point = self.path(key)
+    def __getitem__(self, index):
+        """Recover dataset identified by the given index
 
-        if key in self:
+        Returns
+        -------
+        xr.Dataset
+        """
+        if index not in self:
+            module_logger.debug("Object not available: %", index)
+            raise KeyError
+
+        access_point = self.path(index)
+        module_logger.debug("Openning remote: %", access_point)
+        ds = xr.open_zarr(access_point)
+        return ds
+
+    def __setitem__(self, index, ds):
+        """Saves Dataset ds identified by index
+        """
+        if not isinstance(ds, xr.Dataset):
+            module_logger.warn("Trying to save a non xr.Dataset object")
+            raise ValueError
+        access_point = self.path(index)
+
+        if index in self:
             module_logger.error("Not ready to update an S3 object")
             raise NotImplementedError
 
