@@ -312,7 +312,7 @@ class S3Storage(BaseStorage):
 
         if key in self:
             module_logger.error("Not ready to update an S3 object")
-        assert key not in self
+            raise NotImplementedError
 
         store = s3fs.S3Map(root=access_point, s3 = self.fs)
         ds.to_zarr(store=store, consolidated=True, mode='w')
