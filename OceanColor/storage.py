@@ -163,7 +163,9 @@ class OceanColorDB(object):
         return content
 
 
-class BaseBackend(ABC):
+class BaseStorage(ABC):
+    """Base class for storage backends
+    """
     def __contains__(self, index):
         raise NotImplementedError("Missing __contains__(), not implemented")
 
@@ -262,8 +264,7 @@ class FileSystem(object):
         return os.path.join(self.root, Filename(filename).path)
 
 
-# class S3FileSystem(Backend):
-class S3FileSystem(object):
+class S3Storage(BaseStorage):
     def __init__(self, root: str):
         """
         Parameters
