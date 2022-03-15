@@ -209,7 +209,7 @@ def bloom_filter(
     """
     if isinstance(sensor, list):
         for s in sensor:
-            filenames = bloom_filter(track, s, dtype, dt_tol)
+            filenames = bloom_filter(track, s, dtype, dt_tol, dL_tol)
             yield from filenames
         return
 
