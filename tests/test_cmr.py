@@ -78,6 +78,18 @@ def test_bloom_filter_spaced_target():
     assert len(results) < 5
     assert len(results) == 3
 
+
+def test_bloom_multiple_sensors():
+    track = [{"time": datetime64("2019-05-01"), "lat": 18, "lon": 38}]
+    filter = bloom_filter(
+        pd.DataFrame(track),
+        sensor=["aqua", "terra", "snpp"],
+        dtype="L2",
+        dt_tol=timedelta64(36, "h"),
+        dL_tol=10e3
+    )
+    assert len([f for f in filter]) > 0
+
 def test_search_criteria():
     search = search_criteria(sensor="aqua", dtype="L2")
     assert search["short_name"] == "MODISA_L2_OC"

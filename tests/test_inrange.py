@@ -1,8 +1,13 @@
 """Test module inrange
 """
 
+from datetime import datetime
+import tempfile
+
 from numpy import datetime64, timedelta64
 import os
+
+import pandas as pd
 from pandas import DataFrame
 
 from OceanColor.inrange import matchup_L2, matchup_L3m, matchup
@@ -78,6 +83,34 @@ def test_matchup():
     # Dummy check
     assert data.index.size == 7
     assert data.size == 42
+
+
+def test_InRange_recent():
+    """Find recent in range
+
+    By using FileSystem in a temporary directory guarantees that the cache
+    is not been used. At some point a typo in the InRange's scanner was
+    missed by the tests since it was acessing the cache without actually
+    downloading it.
+    """
+    track = DataFrame(
+        [
+            {
+                "time": datetime64(datetime.utcnow()) - timedelta64(15, "D"),
+                "lat": 35.6,
+                "lon": -126.81,
+            }
+        ]
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        matchup = InRange(username, password, tmpdirname, npes=3)
+        matchup.search(
+            track, sensor="snpp", dtype="L2", dt_tol=timedelta64(12, "h"), dL_tol=10e3
+        )
+        output = pd.concat([m for m in matchup])
+
+    assert len(output) > 0
 
 
 def test_InRange_early_termination():
