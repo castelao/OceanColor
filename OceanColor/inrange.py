@@ -145,7 +145,7 @@ class InRange(object):
                 return
             results.append(
                 threading.Thread(
-                    target=inrange, args=(track, ds, dL_tol, dt_tol, queue)
+                    target=matchup, args=(track, ds, dL_tol, dt_tol, queue)
                 )
             )
             results[-1].start()
@@ -185,7 +185,7 @@ class InRange(object):
                 if not parent.is_alive():
                     return
                 module_logger.debug("Submitting a new inrange process")
-                results.append(executor.submit(inrange, track, ds, dL_tol, dt_tol))
+                results.append(executor.submit(matchup, track, ds, dL_tol, dt_tol))
 
             for tmp in (r.result(timeout) for r in results):
                 if not parent.is_alive():
