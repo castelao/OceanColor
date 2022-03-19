@@ -23,7 +23,9 @@ module_logger = logging.getLogger("OceanColor.storage")
 
 try:
     import s3fs
+    S3FS_AVAILABLE = True
 except:
+    S3FS_AVAILABLE = False
     module_logger.debug("s3fs library is not available")
 
 
@@ -277,6 +279,10 @@ class S3Storage(BaseStorage):
         >>> backend = S3Storage('s3://mybucket/NASA/')
         >>> 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc' in backend
         """
+        if not S3FS_AVAILABLE:
+            module_logger.error("Missing s3fs library required by S3Storage")
+            raise ImportError
+
         self.root = root
         self.fs = s3fs.S3FileSystem(anon=False)
 

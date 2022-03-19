@@ -4,7 +4,13 @@
 
 import os
 import pickle
+
 import pytest
+try:
+    import s3fs
+    S3FS_AVAILABLE = True
+except:
+    S3FS_AVAILABLE = False
 
 from OceanColor.storage import parse_filename, OceanColorDB, FileSystem, S3Storage
 
@@ -104,6 +110,8 @@ def test_no_download():
     # It was not supposed to reach here
     raise
 
+
+@pytest.mark.skipif(not S3FS_AVAILABLE, reason="S3Storage is not available without s3fs")
 def test_S3Storage_path():
     backend = S3Storage("s3://mybucket/datadir")
     assert backend.path("A2019109.L3m_DAY_CHL_chlor_a_4km.nc") == 's3://mybucket/datadir/MODIS-Aqua/L3m/2019/109/A2019109.L3m_DAY_CHL_chlor_a_4km.zarr'
