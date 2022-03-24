@@ -1,0 +1,67 @@
+[build-system]
+requires = [
+    "setuptools >= 48",
+    "setuptools_scm[toml] >= 4",
+    "setuptools_scm_git_archive",
+    "milksnake",
+    "wheel >= 0.29.0",
+]
+build-backend = 'setuptools.build_meta'
+
+[project]
+name="OceanColor"
+dynamic = ['version']
+description="Deal with NASA Ocean Color data (search and download)"
+readme = "README.rst"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+keywords=["NASA", "Ocean Color", "chlorophyll", "oceanography", "matchup"]
+authors = [
+  {email = "guilherme@castelao.net"},
+  {name = "Guilherme Castelao"}
+]
+classifiers=[
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "Click >= 7.1.1",
+  "numpy >= 1.17",
+  "h5netcdf >= 0.8",
+  "h5py >= 2.10",
+  "tables >= 3.6",
+  "netCDF4 >= 1.5",
+  "pandas >= 1.1",
+  "pyproj >= 2.6",
+  "requests >= 2.23",
+  "xarray >= 0.16",
+]
+
+[project.optional-dependencies]
+parallel = ["loky >= 2.8"]
+s3 = [
+  "s3fs >= 2022.1.0",
+  "zarr>=2.8.1"
+  ]
+
+[project.urls]
+homepage = "github.com/castelao/OceanColor"
+documentation = "oceancolor.readthedocs.io"
+repository = "github.com/castelao/OceanColor"
+
+[project.scripts]
+"OceanColor" = "OceanColor.cli:main"
+
+[tool.black]
+line-length = 79
+
+[tool.setuptools_scm]
+write_to = "OceanColor/version.py"
+git_describe_command = "git describe --dirty --tags --long --match 'v*' --first-parent"

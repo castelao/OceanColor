@@ -9,6 +9,7 @@ import os
 
 import pandas as pd
 from pandas import DataFrame
+import pytest
 
 from OceanColor.inrange import matchup_L2, matchup_L3m, matchup
 from OceanColor.storage import OceanColorDB, FileSystem
@@ -85,6 +86,7 @@ def test_matchup():
     assert data.size == 42
 
 
+@pytest.mark.skip()
 def test_InRange_recent():
     """Find recent in range
 

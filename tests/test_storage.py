@@ -110,7 +110,6 @@ def test_no_download():
     # It was not supposed to reach here
     raise
 
-
 @pytest.mark.skipif(not S3FS_AVAILABLE, reason="S3Storage is not available without s3fs")
 def test_S3Storage_path():
     backend = S3Storage("s3://mybucket/datadir")
