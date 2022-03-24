@@ -17,7 +17,7 @@ requires-python = ">=3.8"
 license = {file = "LICENSE"}
 keywords=["NASA", "Ocean Color", "chlorophyll", "oceanography", "matchup"]
 authors = [
-  {email = "guilherme.castelao@scootscience.com"},
+  {email = "guilherme@castelao.net"},
   {name = "Guilherme Castelao"}
 ]
 classifiers=[
