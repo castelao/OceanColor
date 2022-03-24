@@ -58,3 +58,6 @@ repository = "github.com/castelao/OceanColor"
 
 [project.scripts]
 "OceanColor" = "OceanColor.cli:main"
+
+[tool.black]
+line-length = 79
