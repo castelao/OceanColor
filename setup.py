@@ -25,6 +25,5 @@ setup(
     include_package_data=True,
     name='OceanColor',
     packages=find_packages(include=['OceanColor', 'OceanColor.*']),
-    version="0.0.10",
     zip_safe=False,
 )
