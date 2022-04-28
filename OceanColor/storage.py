@@ -74,6 +74,9 @@ class OceanColorDB(object):
         self.password = password
         self.download = download
 
+    def __contains__(self, item: str):
+        return self.backend.__contains__(item)
+
     def __getitem__(self, key):
         """
 
@@ -122,9 +125,6 @@ class OceanColorDB(object):
                 ds = ds.rename({"latitude": "lat", "longitude": "lon"})
             self.backend[key] = ds
         return ds
-
-    def __contains__(self, item: str):
-        return self.backend.__contains__(item)
 
     def backend(self):
         """Placeholder to reinforce the use of a backend
