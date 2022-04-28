@@ -92,10 +92,12 @@ class OceanColorDB(object):
                     f"{key} is not available and download is off."
                 )
                 raise KeyError
+            return self._download(key)
 
-        module_logger.debug("Downloading from Ocean Color: {}".format(key))
+    def _download(self, index):
+        module_logger.debug("Downloading from Ocean Color: {}".format(index))
         # Probably move this reading from remote to another function
-        content = self._remote_content(key)
+        content = self._remote_content(index)
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
@@ -123,7 +125,7 @@ class OceanColorDB(object):
                     + sline.msec
                 )
                 ds = ds.rename({"latitude": "lat", "longitude": "lon"})
-            self.backend[key] = ds
+            self.backend[index] = ds
         return ds
 
     def backend(self):
