@@ -52,6 +52,7 @@ class OceanColorDB(object):
     FileSystem.
     """
 
+    logger = logging.getLogger("OceanColorDB.storage.OceanColorDB")
     lock = threading.Lock()
     time_last_download = datetime(1970, 1, 1)
 
@@ -68,6 +69,7 @@ class OceanColorDB(object):
             Download new data when required, otherwise limits to the already
             available datasets. Default is true, i.e. download when necessary.
         """
+        self.logger.debug("Instatiating OceanColorDB")
         self.username = username
         self.password = password
         self.download = download
@@ -77,14 +79,14 @@ class OceanColorDB(object):
 
         Maybe use BytesIO?? or ds.compute()?
         """
-        module_logger.debug("Reading from backend: {}".format(key))
+        self.logger.debug(f"Reading from backend: {key}")
         try:
             return self.backend[key]
         except KeyError:
-            module_logger.debug("{} is not on the storage".format(key))
+            self.logger.debug(f"{key} is not on the storage")
             if not self.download:
-                module_logger.info(
-                    "{} is not available and download is off.".format(key)
+                self.logger.info(
+                    f"{key} is not available and download is off."
                 )
                 raise KeyError
 
@@ -94,6 +96,7 @@ class OceanColorDB(object):
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
+            self.logger.debug("Saving to temporary file: {tmp.name}")
             tmp.write(content)
             tmp.flush()
 
@@ -134,7 +137,7 @@ class OceanColorDB(object):
         OceanColor.storage.FileSystem :
             A storage backend based on directories and files
         """
-        module_logger.critical(
+        self.logger.critical(
             "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
         )
         raise NotImplementedError("Must define a backend for OceanColorDB")
@@ -146,21 +149,22 @@ class OceanColorDB(object):
         banned, so this function guarantees a minimum time between downloads
         to avoid ovoerloading NASA servers.
         """
+        self.logger.debug("Acquiring lock for remote content")
         self.lock.acquire()
-        module_logger.debug("remote_content aquired lock")
+        self.logger.debug("Lock acquired")
         dt = t_min + round(random.random() * t_random, 2)
         next_time = self.time_last_download + timedelta(seconds=(dt))
         waiting_time = max((next_time - datetime.now()).total_seconds(), 0)
-        module_logger.debug(
-            "Waiting {} seconds before downloading.".format(waiting_time)
+        self.logger.debug(
+            f"Waiting {waiting_time} seconds before downloading."
         )
         time.sleep(waiting_time)
         try:
-            module_logger.info("Downloading: {}".format(filename))
+            self.logger.info(f"Downloading: {filename}")
             content = read_remote_file(filename, self.username, self.password)
         finally:
             self.time_last_download = datetime.now()
-            module_logger.debug("remote_content releasing lock")
+            self.logger.debug("remote_content releasing lock")
             self.lock.release()
 
         return content
@@ -196,6 +200,7 @@ class FileSystem(object):
     the contents limit for the operational system. Probably around several
     hundreds of files in the same directory.
     """
+    logger = logging.getLogger("OceanColorDB.storage.FileSystem")
 
     def __init__(self, root: str):
         """Initiate a FileSystem backend
@@ -206,19 +211,17 @@ class FileSystem(object):
             Base path where to build/find the local data structure. All data
             is contained inside this directory.
         """
-        module_logger.debug("Using FileSystem as storage at: {}".format(root))
+        self.logger.debug(f"Using FileSystem as storage at: {root}")
 
         if not os.path.isdir(root):
-            module_logger.critical(
-                "Invalid path for backend.FileSystem {}".format(root)
-            )
+            self.logger.critical(f"Invalid path for backend.FileSystem {root}")
             raise FileNotFoundError
         self.root = os.path.abspath(root)
 
     def __getitem__(self, key):
         filename = self.path(key)
         try:
-            module_logger.debug("Openning file: {}".format(filename))
+            self.logger.debug(f"Openning file: {filename}")
             ds = xr.open_dataset(filename)
         except FileNotFoundError:
             raise KeyError
@@ -229,7 +232,7 @@ class FileSystem(object):
         filename = self.path(key)
         d = os.path.dirname(filename)
         if not os.path.exists(d):
-            module_logger.debug("Creating missing directory: {}".format(d))
+            self.logger.debug(f"Creating missing directory: {d}")
             os.makedirs(d)
         # ds.to_netcdf("{}.nc".format(filename))
         ds.to_netcdf(filename)
@@ -268,6 +271,8 @@ class FileSystem(object):
 
 
 class S3Storage(BaseStorage):
+    logger = logging.getLogger("OceanColorDB.storage.S3Storage")
+
     def __init__(self, root: str):
         """
         Parameters
@@ -281,7 +286,7 @@ class S3Storage(BaseStorage):
         >>> 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc' in backend
         """
         if not S3FS_AVAILABLE:
-            module_logger.error("Missing s3fs library required by S3Storage")
+            self.logger.error("Missing s3fs library required by S3Storage")
             raise ImportError
 
         self.root = root
@@ -308,24 +313,25 @@ class S3Storage(BaseStorage):
         xr.Dataset
         """
         if index not in self:
-            module_logger.debug("Object not available: %s", index)
+            self.logger.debug(f"Object not available: {index}")
             raise KeyError
 
         access_point = self.path(index)
-        module_logger.debug("Openning remote: %s", access_point)
+        self.logger.debug(f"Acessing remote: {access_point}")
         ds = xr.open_zarr(access_point)
+        self.logger.debug(f"Finished opening remote: {access_point}")
         return ds
 
     def __setitem__(self, index, ds):
         """Saves Dataset ds identified by index
         """
         if not isinstance(ds, xr.Dataset):
-            module_logger.warn("Trying to save a non xr.Dataset object")
+            self.logger.warn("Trying to save a non xr.Dataset object")
             raise ValueError
         access_point = self.path(index)
 
         if index in self:
-            module_logger.error("Not ready to update an S3 object")
+            self.logger.error("Not ready to update an S3 object")
             raise NotImplementedError
 
         store = s3fs.S3Map(root=access_point, s3 = self.fs)
@@ -441,6 +447,7 @@ class InMemory(BaseStorage):
 
     Minimalist solution to store granules in memory.
     """
+    logger = logging.getLogger("OceanColorDB.storage.InMemory")
 
     __data = OrderedDict()
 
