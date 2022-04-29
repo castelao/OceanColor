@@ -21,6 +21,7 @@ module_logger = logging.getLogger("OceanColor.inrange")
 
 try:
     from loky import ProcessPoolExecutor
+
     LOKY_AVAILABLE = True
     module_logger.debug("Will use package loky to search in parallel.")
 except:
@@ -56,6 +57,8 @@ class InRange(object):
     >>>     print(m)
     """
 
+    logger = logging.getLogger("OceanColorDB.inrange.InRange")
+
     def __init__(self, username, password, path="./", npes=None):
         """
         Parameters
@@ -69,13 +72,14 @@ class InRange(object):
         npes : int, optional
             Number of maximum parallel jobs
         """
-        module_logger.info("Initializing inrange.InRange")
+        self.logger.info("Initializing inrange.InRange searching engine")
         if npes is None:
             npes = 3
+        self.logger.debug(f"npes: {npes}")
         self.npes = npes
-        module_logger.debug("Initializing searching engine with npes={}".format(npes))
-        self.queue = queue.Queue(int(3 * npes))
-        module_logger.debug("Initializing searching engine with a queue size {}".format(npes))
+        queue_size = int(3 * npes)
+        self.logger.debug(f"Using queue size: {queue_size}")
+        self.queue = queue.Queue(queue_size)
 
         self.db = OceanColorDB(username, password)
         self.db.backend = FileSystem(path)
@@ -103,44 +107,44 @@ class InRange(object):
         dt_tol:
         dL_tol:
         """
-        module_logger.debug("Searching for matchups.")
+        self.logger.debug("Searching for matchups.")
         if LOKY_AVAILABLE:
             scanner = self.scanner
-            module_logger.debug("Scanning in parallel with loky.")
+            self.logger.debug("Scanning in parallel with loky.")
         else:
             scanner = self.scanner_threading
-            module_logger.debug("Scanning with threading.")
+            self.logger.debug("Scanning with threading.")
 
         parent = threading.current_thread()
         self.worker = threading.Thread(
             target=scanner,
             args=(self.queue, parent, self.npes, track, sensor, dtype, dt_tol, dL_tol),
         )
-        module_logger.debug("Starting scanner worker.")
+        self.logger.debug("Starting scanner worker.")
         self.worker.start()
 
     def scanner_threading(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
-        module_logger.debug("Scanner, pid: {}".format(os.getpid()))
+        self.logger.debug("Scanner, pid: {}".format(os.getpid()))
 
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
-        module_logger.debug("Finished bloom filter")
+        self.logger.debug("Finished bloom filter")
 
         results = []
         for f in filenames:
-            module_logger.info("Scanning: {}".format(f))
+            self.logger.info("Scanning: {}".format(f))
             if (len(results) >= npes) and parent.is_alive():
                 idx = [r.is_alive() for r in results]
                 if np.all(idx):
                     r = results.pop(0)
-                    module_logger.debug("Waiting for {}".format(r.name))
+                    self.logger.debug("Waiting for {}".format(r.name))
                 else:
                     r = results.pop(idx.index(False))
                 r.join()
-                module_logger.debug("Finished {}".format(r.name))
-            module_logger.debug("Getting {}".format(f))
+                self.logger.debug("Finished {}".format(r.name))
+            self.logger.debug("Getting {}".format(f))
             ds = self.db[f].compute()
-            module_logger.debug("Launching search on {}".format(f))
+            self.logger.debug("Launching search on {}".format(f))
             if not parent.is_alive():
                 return
             results.append(
@@ -153,49 +157,49 @@ class InRange(object):
             if not parent.is_alive():
                 return
             r.join()
-            module_logger.debug("Finished {}".format(r.name))
+            self.logger.debug("Finished {}".format(r.name))
 
-        module_logger.debug("Finished scanning all potential matchups.")
+        self.logger.debug("Finished scanning all potential matchups.")
         queue.put("END")
 
 
     def scanner(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
-        module_logger.debug("Scanner, pid: {}".format(os.getpid()))
+        self.logger.debug("Scanner, pid: {}".format(os.getpid()))
 
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
-        module_logger.debug("Finished bloom filter")
+        self.logger.debug("Finished bloom filter")
 
         with ProcessPoolExecutor(max_workers=npes, timeout=timeout) as executor:
             results = []
             for f in filenames:
-                module_logger.info("Scanning: {}".format(f))
+                self.logger.info("Scanning: {}".format(f))
                 if (len(results) >= npes) and parent.is_alive():
                     idx = [r.done() for r in results]
                     while not np.any(idx):
                         time.sleep(1)
                         idx = [r.done() for r in results]
                     tmp = results.pop(idx.index(True)).result()
-                    module_logger.debug("Finished reading another file")
+                    self.logger.debug("Finished reading another file")
                     if not tmp.empty:
-                        module_logger.warning("Found {} matchs".format(len(tmp)))
+                        self.logger.warning("Found {} matchs".format(len(tmp)))
                         queue.put(tmp)
-                module_logger.debug("Getting {}".format(f))
+                self.logger.debug("Getting {}".format(f))
                 ds = self.db[f].compute()
                 if not parent.is_alive():
                     return
-                module_logger.debug("Submitting a new inrange process")
+                self.logger.debug("Submitting a new inrange process")
                 results.append(executor.submit(matchup, track, ds, dL_tol, dt_tol))
 
             for tmp in (r.result(timeout) for r in results):
                 if not parent.is_alive():
                     return
-                module_logger.debug("Finished reading another file")
+                self.logger.debug("Finished reading another file")
                 if not tmp.empty:
-                    module_logger.warning("Found {} matchs".format(len(tmp)))
+                    self.logger.warning("Found {} matchs".format(len(tmp)))
                     queue.put(tmp)
 
-        module_logger.debug("Finished scanning all potential matchups.")
+        self.logger.debug("Finished scanning all potential matchups.")
         queue.put("END")
 
 
@@ -257,7 +261,9 @@ def matchup(track, ds, dL_tol: float, dt_tol, queue=None):
         return output
     elif output.size > 0:
         module_logger.info(
-            "Found {} matchups in {}".format(len(output.index), ds.product_name)
+            "Found {} matchups in {}".format(
+                len(output.index), ds.product_name
+            )
         )
         queue.put(output)
     else:
