@@ -30,6 +30,19 @@ except:
     module_logger.debug("s3fs library is not available")
 
 
+class BaseStorage(ABC):
+    """Base class for storage backends
+    """
+    def __contains__(self, index):
+        raise NotImplementedError("Missing __contains__(), not implemented")
+
+    def __getitem__(self, index):
+        raise NotImplementedError("Missing __getitem__ for this Backend")
+
+    def __setitem__(self, index, value):
+        raise NotImplementedError("Missing __setitem__ for this Backend")
+
+
 class OceanColorDB(object):
     """An abstraction of NASA's Ocean Color database
 
