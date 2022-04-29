@@ -66,6 +66,7 @@ class OceanColorDB(object):
     """
 
     logger = logging.getLogger("OceanColorDB.storage.OceanColorDB")
+    backend = BaseStorage()
     lock = threading.Lock()
     time_last_download = datetime(1970, 1, 1)
 
@@ -141,6 +142,7 @@ class OceanColorDB(object):
             self.backend[index] = ds
         return ds
 
+<<<<<<< HEAD
     def backend(self):
         """Placeholder to reinforce the use of a backend
 
@@ -157,6 +159,8 @@ class OceanColorDB(object):
         )
         raise NotImplementedError("Must define a backend for OceanColorDB")
 
+=======
+>>>>>>> 1417446 (fix: Correct way to set a place holder for backend)
     def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
         """Read a remote file with a minimum time between downloads
 
