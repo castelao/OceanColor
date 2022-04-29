@@ -156,25 +156,6 @@ class OceanColorDB(object):
             self.backend[index] = ds
         return ds
 
-<<<<<<< HEAD
-    def backend(self):
-        """Placeholder to reinforce the use of a backend
-
-        While OceanColorDB manages the access to NASA's database and does the
-        front end with the user, the backend actually manages the data.
-
-        See Also
-        --------
-        OceanColor.storage.FileSystem :
-            A storage backend based on directories and files
-        """
-        self.logger.critical(
-            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
-        )
-        raise NotImplementedError("Must define a backend for OceanColorDB")
-
-=======
->>>>>>> 1417446 (fix: Correct way to set a place holder for backend)
     def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
         """Read a remote file with a minimum time between downloads
 
