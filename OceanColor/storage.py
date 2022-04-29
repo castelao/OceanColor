@@ -32,8 +32,22 @@ except:
 
 class BaseStorage(ABC):
     """Base class for storage backends
+
+    While OceanColorDB manages the access to NASA's database and provides the
+    frontend for the user, multiple backends can be used to manage the data
+    itself. This is the 'template' for the possible backends.
+
+    See Also
+    --------
+    OceanColor.storage.FileSystem :
+        A storage backend based on directories and files
     """
+    logger = logging.getLogger("OceanColorDB.storage.BaseStorage")
+
     def __contains__(self, index):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
+        )
         raise NotImplementedError("Missing __contains__(), not implemented")
 
     def __getitem__(self, index):
