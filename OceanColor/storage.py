@@ -184,18 +184,19 @@ class OceanColorDB(object):
 
         return content
 
+    def check(self, index):
+        """Confirm that index is availble, otherwise, download it
 
-class BaseStorage(ABC):
-    """Base class for storage backends
-    """
-    def __contains__(self, index):
-        raise NotImplementedError("Missing __contains__(), not implemented")
-
-    def __getitem__(self, index):
-        raise NotImplementedError("Missing __getitem__ for this Backend")
-
-    def __setitem__(self, index, value):
-        raise NotImplementedError("Missing __setitem__ for this Backend")
+        Useful in a pre-processing stage to guarantee that all required data
+        is available. For instance a cronjob could run periodically just
+        downloading new data so that it is available when the analysis is
+        actually running.
+        """
+        if index in self:
+            self.logger.debug(f"Item already available: {index}")
+        else:
+            ds = self._download(index)
+            ds.close()
 
 
 # db.backend
