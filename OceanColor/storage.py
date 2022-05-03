@@ -103,7 +103,7 @@ class OceanColorDB(object):
         self.download = download
 
     def __contains__(self, item: str):
-        return self.backend.__contains__(item)
+        return item in self.backend
 
     def __getitem__(self, key):
         """
