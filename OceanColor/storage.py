@@ -44,7 +44,7 @@ class BaseStorage(ABC):
         A storage backend based on directories and files
     """
 
-    logger = logging.getLogger("OceanColorDB.storage.BaseStorage")
+    logger = logging.getLogger("OceanColor.storage.BaseStorage")
 
     def __contains__(self, index):
         self.logger.critical(
@@ -81,7 +81,7 @@ class OceanColorDB(object):
     FileSystem.
     """
 
-    logger = logging.getLogger("OceanColorDB.storage.OceanColorDB")
+    logger = logging.getLogger("OceanColor.storage.OceanColorDB")
     backend = BaseStorage()
     lock = threading.Lock()
     time_last_download = datetime(1970, 1, 1)
@@ -99,7 +99,7 @@ class OceanColorDB(object):
             Download new data when required, otherwise limits to the already
             available datasets. Default is true, i.e. download when necessary.
         """
-        self.logger.debug("Instatiating OceanColorDB")
+        self.logger.debug("Instantiating OceanColorDB")
         self.username = username
         self.password = password
         self.download = download
@@ -220,7 +220,7 @@ class FileSystem(object):
     hundreds of files in the same directory.
     """
 
-    logger = logging.getLogger("OceanColorDB.storage.FileSystem")
+    logger = logging.getLogger("OceanColor.storage.FileSystem")
 
     def __init__(self, root: str):
         """Initiate a FileSystem backend
@@ -291,7 +291,7 @@ class FileSystem(object):
 
 
 class S3Storage(BaseStorage):
-    logger = logging.getLogger("OceanColorDB.storage.S3Storage")
+    logger = logging.getLogger("OceanColor.storage.S3Storage")
 
     def __init__(self, root: str):
         """
@@ -472,7 +472,7 @@ class InMemory(BaseStorage):
     Minimalist solution to store granules in memory.
     """
 
-    logger = logging.getLogger("OceanColorDB.storage.InMemory")
+    logger = logging.getLogger("OceanColor.storage.InMemory")
 
     __data = OrderedDict()
 
