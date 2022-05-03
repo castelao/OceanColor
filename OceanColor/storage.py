@@ -48,14 +48,20 @@ class BaseStorage(ABC):
 
     def __contains__(self, index):
         self.logger.critical(
-            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
+            "OceanColorDB requires a backend. Check OceanColor.storage"
         )
         raise NotImplementedError("Missing __contains__(), not implemented")
 
     def __getitem__(self, index):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Check OceanColor.storage"
+        )
         raise NotImplementedError("Missing __getitem__ for this Backend")
 
     def __setitem__(self, index, value):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Check OceanColor.storage"
+        )
         raise NotImplementedError("Missing __setitem__ for this Backend")
 
 
