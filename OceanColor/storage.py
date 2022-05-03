@@ -24,6 +24,7 @@ module_logger = logging.getLogger("OceanColor.storage")
 
 try:
     import s3fs
+
     S3FS_AVAILABLE = True
 except:
     S3FS_AVAILABLE = False
@@ -42,6 +43,7 @@ class BaseStorage(ABC):
     OceanColor.storage.FileSystem :
         A storage backend based on directories and files
     """
+
     logger = logging.getLogger("OceanColorDB.storage.BaseStorage")
 
     def __contains__(self, index):
@@ -156,7 +158,9 @@ class OceanColorDB(object):
             self.backend[index] = ds
         return ds
 
-    def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
+    def _remote_content(
+        self, filename: str, t_min: int = 4, t_random: int = 4
+    ):
         """Read a remote file with a minimum time between downloads
 
         NASA monitors the downloads and excessive activity is temporarily
@@ -215,6 +219,7 @@ class FileSystem(object):
     the contents limit for the operational system. Probably around several
     hundreds of files in the same directory.
     """
+
     logger = logging.getLogger("OceanColorDB.storage.FileSystem")
 
     def __init__(self, root: str):
@@ -349,8 +354,8 @@ class S3Storage(BaseStorage):
             self.logger.error("Not ready to update an S3 object")
             raise NotImplementedError
 
-        store = s3fs.S3Map(root=access_point, s3 = self.fs)
-        ds.to_zarr(store=store, consolidated=True, mode='w')
+        store = s3fs.S3Map(root=access_point, s3=self.fs)
+        ds.to_zarr(store=store, consolidated=True, mode="w")
 
     def path(self, product_name: str):
         p = os.path.join(self.root, Filename(product_name).path)
@@ -367,6 +372,7 @@ class Filename(object):
     This class is used in support for the FileSystem backend to guide its
     directory structure.
     """
+
     def __init__(self, filename: str):
         """
         Parameters
@@ -402,7 +408,10 @@ class Filename(object):
     @property
     def dirname(self):
         path = os.path.join(
-            self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"]
+            self.mission,
+            self.attrs["mode"],
+            self.attrs["year"],
+            self.attrs["doy"],
         )
         return path
 
@@ -462,6 +471,7 @@ class InMemory(BaseStorage):
 
     Minimalist solution to store granules in memory.
     """
+
     logger = logging.getLogger("OceanColorDB.storage.InMemory")
 
     __data = OrderedDict()
