@@ -123,6 +123,11 @@ class InRange(object):
         self.logger.debug("Starting scanner worker.")
         self.worker.start()
 
+    def download_only(self, track, sensor, dtype, dt_tol, dL_tol):
+        filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
+        for f in filenames:
+            self.db.check(f)
+
     def scanner_threading(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
         timeout = 900
         self.logger.debug("Scanner, pid: {}".format(os.getpid()))

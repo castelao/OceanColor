@@ -44,7 +44,7 @@ def api_walk(url, page_size=25, offset=0, **kwargs):
     """
     kwargs["page_size"] = page_size
     kwargs["offset"] = offset
-    module_logger.debug("kwargs: {}".format(kwargs))
+    module_logger.debug("api_walk() with kwargs: {}".format(kwargs))
     r = requests.get(url, params=kwargs)
     if r.status_code != 200:
         module_logger.warning("Failed {}".format(r.status_code))
@@ -209,6 +209,7 @@ def bloom_filter(
     """
     if isinstance(sensor, list):
         for s in sensor:
+            module_logger.info(f"Processing a list of sensors. Now: {s}")
             filenames = bloom_filter(track, s, dtype, dt_tol, dL_tol)
             yield from filenames
         return

@@ -24,10 +24,45 @@ module_logger = logging.getLogger("OceanColor.storage")
 
 try:
     import s3fs
+
     S3FS_AVAILABLE = True
 except:
     S3FS_AVAILABLE = False
     module_logger.debug("s3fs library is not available")
+
+
+class BaseStorage(ABC):
+    """Base class for storage backends
+
+    While OceanColorDB manages the access to NASA's database and provides the
+    frontend for the user, multiple backends can be used to manage the data
+    itself. This is the 'template' for the possible backends.
+
+    See Also
+    --------
+    OceanColor.storage.FileSystem :
+        A storage backend based on directories and files
+    """
+
+    logger = logging.getLogger("OceanColor.storage.BaseStorage")
+
+    def __contains__(self, index):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Check OceanColor.storage"
+        )
+        raise NotImplementedError("Missing __contains__(), not implemented")
+
+    def __getitem__(self, index):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Check OceanColor.storage"
+        )
+        raise NotImplementedError("Missing __getitem__ for this Backend")
+
+    def __setitem__(self, index, value):
+        self.logger.critical(
+            "OceanColorDB requires a backend. Check OceanColor.storage"
+        )
+        raise NotImplementedError("Missing __setitem__ for this Backend")
 
 
 class OceanColorDB(object):
@@ -52,7 +87,8 @@ class OceanColorDB(object):
     FileSystem.
     """
 
-    logger = logging.getLogger("OceanColorDB.storage.OceanColorDB")
+    logger = logging.getLogger("OceanColor.storage.OceanColorDB")
+    backend = BaseStorage()
     lock = threading.Lock()
     time_last_download = datetime(1970, 1, 1)
 
@@ -69,10 +105,13 @@ class OceanColorDB(object):
             Download new data when required, otherwise limits to the already
             available datasets. Default is true, i.e. download when necessary.
         """
-        self.logger.debug("Instatiating OceanColorDB")
+        self.logger.debug("Instantiating OceanColorDB")
         self.username = username
         self.password = password
         self.download = download
+
+    def __contains__(self, item: str):
+        return item in self.backend
 
     def __getitem__(self, key):
         """
@@ -89,10 +128,12 @@ class OceanColorDB(object):
                     f"{key} is not available and download is off."
                 )
                 raise KeyError
+            return self._download(key)
 
-        module_logger.debug("Downloading from Ocean Color: {}".format(key))
+    def _download(self, index):
+        module_logger.debug("Downloading from Ocean Color: {}".format(index))
         # Probably move this reading from remote to another function
-        content = self._remote_content(key)
+        content = self._remote_content(index)
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
@@ -120,29 +161,12 @@ class OceanColorDB(object):
                     + sline.msec
                 )
                 ds = ds.rename({"latitude": "lat", "longitude": "lon"})
-            self.backend[key] = ds
+            self.backend[index] = ds
         return ds
 
-    def __contains__(self, item: str):
-        return self.backend.__contains__(item)
-
-    def backend(self):
-        """Placeholder to reinforce the use of a backend
-
-        While OceanColorDB manages the access to NASA's database and does the
-        front end with the user, the backend actually manages the data.
-
-        See Also
-        --------
-        OceanColor.storage.FileSystem :
-            A storage backend based on directories and files
-        """
-        self.logger.critical(
-            "OceanColorDB requires a backend. Consider using OceanColor.storage.FileSystem"
-        )
-        raise NotImplementedError("Must define a backend for OceanColorDB")
-
-    def _remote_content(self, filename: str, t_min: int = 4, t_random: int = 4):
+    def _remote_content(
+        self, filename: str, t_min: int = 4, t_random: int = 4
+    ):
         """Read a remote file with a minimum time between downloads
 
         NASA monitors the downloads and excessive activity is temporarily
@@ -169,18 +193,19 @@ class OceanColorDB(object):
 
         return content
 
+    def check(self, index):
+        """Confirm that index is availble, otherwise, download it
 
-class BaseStorage(ABC):
-    """Base class for storage backends
-    """
-    def __contains__(self, index):
-        raise NotImplementedError("Missing __contains__(), not implemented")
-
-    def __getitem__(self, index):
-        raise NotImplementedError("Missing __getitem__ for this Backend")
-
-    def __setitem__(self, index, value):
-        raise NotImplementedError("Missing __setitem__ for this Backend")
+        Useful in a pre-processing stage to guarantee that all required data
+        is available. For instance a cronjob could run periodically just
+        downloading new data so that it is available when the analysis is
+        actually running.
+        """
+        if index in self:
+            self.logger.debug(f"Item already available: {index}")
+        else:
+            ds = self._download(index)
+            ds.close()
 
 
 # db.backend
@@ -200,7 +225,8 @@ class FileSystem(object):
     the contents limit for the operational system. Probably around several
     hundreds of files in the same directory.
     """
-    logger = logging.getLogger("OceanColorDB.storage.FileSystem")
+
+    logger = logging.getLogger("OceanColor.storage.FileSystem")
 
     def __init__(self, root: str):
         """Initiate a FileSystem backend
@@ -271,7 +297,7 @@ class FileSystem(object):
 
 
 class S3Storage(BaseStorage):
-    logger = logging.getLogger("OceanColorDB.storage.S3Storage")
+    logger = logging.getLogger("OceanColor.storage.S3Storage")
 
     def __init__(self, root: str):
         """
@@ -334,8 +360,8 @@ class S3Storage(BaseStorage):
             self.logger.error("Not ready to update an S3 object")
             raise NotImplementedError
 
-        store = s3fs.S3Map(root=access_point, s3 = self.fs)
-        ds.to_zarr(store=store, consolidated=True, mode='w')
+        store = s3fs.S3Map(root=access_point, s3=self.fs)
+        ds.to_zarr(store=store, consolidated=True, mode="w")
 
     def path(self, product_name: str):
         p = os.path.join(self.root, Filename(product_name).path)
@@ -352,6 +378,7 @@ class Filename(object):
     This class is used in support for the FileSystem backend to guide its
     directory structure.
     """
+
     def __init__(self, filename: str):
         """
         Parameters
@@ -387,7 +414,10 @@ class Filename(object):
     @property
     def dirname(self):
         path = os.path.join(
-            self.mission, self.attrs["mode"], self.attrs["year"], self.attrs["doy"]
+            self.mission,
+            self.attrs["mode"],
+            self.attrs["year"],
+            self.attrs["doy"],
         )
         return path
 
@@ -447,7 +477,8 @@ class InMemory(BaseStorage):
 
     Minimalist solution to store granules in memory.
     """
-    logger = logging.getLogger("OceanColorDB.storage.InMemory")
+
+    logger = logging.getLogger("OceanColor.storage.InMemory")
 
     __data = OrderedDict()
 
