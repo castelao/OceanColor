@@ -5,14 +5,9 @@ Different backends allow for different ways to handle the data from NASA.
 
 from abc import ABC
 from collections import OrderedDict
-from datetime import datetime, timedelta
 import logging
-import numpy as np
 import os
 import re
-import tempfile
-import time
-import threading
 
 import xarray as xr
 
