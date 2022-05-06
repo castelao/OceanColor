@@ -17,7 +17,7 @@ import threading
 import xarray as xr
 
 
-module_logger = logging.getLogger("OceanColor.storage")
+module_logger = logging.getLogger("OceanColor.backend")
 
 try:
     import s3fs
@@ -37,27 +37,27 @@ class BaseStorage(ABC):
 
     See Also
     --------
-    OceanColor.storage.FileSystem :
+    OceanColor.backend.FileSystem :
         A storage backend based on directories and files
     """
 
-    logger = logging.getLogger("OceanColor.storage.BaseStorage")
+    logger = logging.getLogger("OceanColor.backend.BaseStorage")
 
     def __contains__(self, index):
         self.logger.critical(
-            "OceanColorDB requires a backend. Check OceanColor.storage"
+            "OceanColorDB requires a backend. Check OceanColor.backend"
         )
         raise NotImplementedError("Missing __contains__(), not implemented")
 
     def __getitem__(self, index):
         self.logger.critical(
-            "OceanColorDB requires a backend. Check OceanColor.storage"
+            "OceanColorDB requires a backend. Check OceanColor.backend"
         )
         raise NotImplementedError("Missing __getitem__ for this Backend")
 
     def __setitem__(self, index, value):
         self.logger.critical(
-            "OceanColorDB requires a backend. Check OceanColor.storage"
+            "OceanColorDB requires a backend. Check OceanColor.backend"
         )
         raise NotImplementedError("Missing __setitem__ for this Backend")
 
@@ -79,7 +79,7 @@ class FileSystem(object):
     hundreds of files in the same directory.
     """
 
-    logger = logging.getLogger("OceanColor.storage.FileSystem")
+    logger = logging.getLogger("OceanColor.backend.FileSystem")
 
     def __init__(self, root: str):
         """Initiate a FileSystem backend
@@ -150,7 +150,7 @@ class FileSystem(object):
 
 
 class S3Storage(BaseStorage):
-    logger = logging.getLogger("OceanColor.storage.S3Storage")
+    logger = logging.getLogger("OceanColor.backend.S3Storage")
 
     def __init__(self, root: str):
         """
@@ -331,7 +331,7 @@ class InMemory(BaseStorage):
     Minimalist solution to store granules in memory.
     """
 
-    logger = logging.getLogger("OceanColor.storage.InMemory")
+    logger = logging.getLogger("OceanColor.backend.InMemory")
 
     __data = OrderedDict()
 
