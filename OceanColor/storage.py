@@ -17,7 +17,7 @@ import threading
 import xarray as xr
 
 from .gsfc import read_remote_file
-from .backend.common import BaseStorage
+from .backend.common import BaseStorage, InMemory
 
 
 module_logger = logging.getLogger("OceanColor.storage")
@@ -436,54 +436,3 @@ def parse_filename(filename: str):
         """
     output = re.match(rule, filename, re.VERBOSE).groupdict()
     return output
-
-
-class InMemory(BaseStorage):
-    """In memory storage
-
-    Minimalist solution to store granules in memory.
-    """
-
-    logger = logging.getLogger("OceanColor.storage.InMemory")
-
-    __data = OrderedDict()
-
-    def __init__(self, quota: int = 5 * 1024 ** 3):
-        """Initialize an InMemory object
-
-        Parameters
-        ----------
-        quota: int
-            Maximum ammount of bytes to store. Once that limit is reached,
-            the oldest item stored is deleted.
-        """
-        self.quota = quota
-
-    def __contains__(self, index):
-        return index in self.__data
-
-    def __getitem__(self, index):
-        if index in self:
-            self.__data.move_to_end(index)
-        return self.__data[index]
-
-    def __setitem__(self, index, ds):
-        assert isinstance(ds, xr.Dataset)
-        self.__data[index] = ds
-        self.apply_quota()
-
-    @property
-    def nbytes(self):
-        """Total bytes stored"""
-        if len(self.__data) == 0:
-            return 0
-        return int(round(sum([v.nbytes for v in self.__data.values()])))
-
-    def apply_quota(self):
-        """Verify quota and remove old objects if necessary
-
-        The most recently acessed objects have priority, thus the oldest
-        objects are removed first.
-        """
-        while (len(self.__data) > 1) and (self.nbytes > self.quota):
-            self.__data.popitem(last=False)
