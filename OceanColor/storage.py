@@ -17,7 +17,7 @@ import threading
 import xarray as xr
 
 from .gsfc import read_remote_file
-from .backend.common import BaseStorage, InMemory
+from .backend.common import BaseStorage, InMemory, S3Storage
 
 
 module_logger = logging.getLogger("OceanColor.storage")
@@ -260,78 +260,6 @@ class FileSystem(object):
         '/data/MODIS-Aqua/L3m/2019/109/A2019109.L3m_DAY_CHL_chlor_a_4km.nc'
         """
         return os.path.join(self.root, Filename(filename).path)
-
-
-class S3Storage(BaseStorage):
-    logger = logging.getLogger("OceanColor.storage.S3Storage")
-
-    def __init__(self, root: str):
-        """
-        Parameters
-        ----------
-        root:
-            The S3 root point, including bucket and key prefix
-
-        Examples
-        --------
-        >>> backend = S3Storage('s3://mybucket/NASA/')
-        >>> 'T2004006.L3m_DAY_CHL_chlor_a_4km.nc' in backend
-        """
-        if not S3FS_AVAILABLE:
-            self.logger.error("Missing s3fs library required by S3Storage")
-            raise ImportError
-
-        self.root = root
-        self.fs = s3fs.S3FileSystem(anon=False)
-
-    def __contains__(self, index: str):
-        """Checks if the given index exists in the storage
-
-        It doesn't actually recover the item, so it minimizes network
-        transfer.
-        """
-        try:
-            access_point = self.path(index)
-        except:
-            return False
-
-        return self.fs.exists(access_point)
-
-    def __getitem__(self, index):
-        """Recover dataset identified by the given index
-
-        Returns
-        -------
-        xr.Dataset
-        """
-        if index not in self:
-            self.logger.debug(f"Object not available: {index}")
-            raise KeyError
-
-        access_point = self.path(index)
-        self.logger.debug(f"Acessing remote: {access_point}")
-        ds = xr.open_zarr(access_point)
-        self.logger.debug(f"Finished opening remote: {access_point}")
-        return ds
-
-    def __setitem__(self, index, ds):
-        """Saves Dataset ds identified by index
-        """
-        if not isinstance(ds, xr.Dataset):
-            self.logger.warn("Trying to save a non xr.Dataset object")
-            raise ValueError
-        access_point = self.path(index)
-
-        if index in self:
-            self.logger.error("Not ready to update an S3 object")
-            raise NotImplementedError
-
-        store = s3fs.S3Map(root=access_point, s3=self.fs)
-        ds.to_zarr(store=store, consolidated=True, mode="w")
-
-    def path(self, product_name: str):
-        p = os.path.join(self.root, Filename(product_name).path)
-        return p.replace(".nc", ".zarr")
 
 
 class Filename(object):
