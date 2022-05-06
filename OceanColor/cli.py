@@ -4,7 +4,7 @@ import click
 import numpy as np
 import pandas as pd
 
-import OceanColor.OceanColor as OceanColor
+from OceanColor.inrange import InRange
 
 
 # At this point it's just a Proof of concept
@@ -37,7 +37,7 @@ def cli_inrange(username, password, sensor, dtype, dt_tol, dL_tol, track):
                           "lon": [float(lon)]})
 
     dt_tol = np.timedelta64(dt_tol, 'h')
-    matchup = OceanColor.InRange(username, password, npes=3)
+    matchup = InRange(username, password, npes=3)
     matchup.search(track, sensor, dtype, dt_tol, dL_tol)
     for m in matchup:
         click.echo(m)

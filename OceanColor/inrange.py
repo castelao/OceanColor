@@ -15,7 +15,8 @@ import pandas as pd
 from pyproj import Geod
 
 from .cmr import bloom_filter
-from .storage import OceanColorDB, FileSystem
+from . import OceanColorDB
+from .backend import FileSystem
 
 module_logger = logging.getLogger("OceanColor.inrange")
 

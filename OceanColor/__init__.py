@@ -4,6 +4,7 @@ import os
 import sys
 import warnings
 
+from .storage import OceanColorDB
 
 __author__ = """Guilherme Castelão"""
 __email__ = "guilherme@castelao.net"
@@ -27,3 +28,5 @@ if sys.platform == "darwin":
     if os.environ.get("OBJC_DISABLE_INITIALIZE_FORK_SAFETY") != "YES":
         msg = "You might require OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES"
         warnings.warn(msg, RuntimeWarning)
+
+__all__ = ("backend",)

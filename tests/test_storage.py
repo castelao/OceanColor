@@ -13,7 +13,9 @@ try:
 except:
     S3FS_AVAILABLE = False
 
-from OceanColor.storage import parse_filename, OceanColorDB, FileSystem, S3Storage, InMemory
+from OceanColor.backend.common import parse_filename
+from OceanColor.backend import FileSystem, S3Storage, InMemory
+from OceanColor.storage import OceanColorDB
 
 
 def test_parse_filename_AL2():
