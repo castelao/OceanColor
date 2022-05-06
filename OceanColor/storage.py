@@ -14,7 +14,8 @@ import threading
 import xarray as xr
 
 from .gsfc import read_remote_file
-from .backend.common import BaseStorage, FileSystem, InMemory, S3Storage
+# To guarantee backward compatibility
+from .backend import *
 
 
 module_logger = logging.getLogger("OceanColor.storage")
