@@ -53,9 +53,9 @@ s3 = [
   ]
 
 [project.urls]
-homepage = "github.com/castelao/OceanColor"
-documentation = "oceancolor.readthedocs.io"
-repository = "github.com/castelao/OceanColor"
+homepage = "https://github.com/castelao/OceanColor"
+documentation = "https://oceancolor.readthedocs.io"
+repository = "https://github.com/castelao/OceanColor"
 
 [project.scripts]
 "OceanColor" = "OceanColor.cli:main"
