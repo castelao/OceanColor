@@ -7,8 +7,11 @@ import logging
 from typing import Any, Dict, Optional, Sequence
 import urllib
 
+import aiohttp
+import fsspec
 import numpy as np
 import requests
+import requests.compat
 
 
 module_logger = logging.getLogger("OceanColor.gsfc")
@@ -222,12 +225,9 @@ def read_remote_file(filename, username, password):
     and a password.
     """
     url_base = "https://oceandata.sci.gsfc.nasa.gov/ob/getfile/"
-    url = urllib.request.urljoin(url_base, filename)
+    url = requests.compat.urljoin(url_base, filename)
 
-    with requests.Session() as session:
-        session.auth = (username, password)
-        r1 = session.request("get", url)
-        r = session.get(r1.url, auth=(username, password))
-        if not r.ok:
-            r.raise_for_status()
-        return r.content
+    fs = fsspec.filesystem('https', client_kwargs={'auth': aiohttp.BasicAuth(username, password)})
+    f = fs.open(url)
+    content = f.read()
+    return content
