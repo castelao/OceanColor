@@ -12,7 +12,7 @@ name="OceanColor"
 dynamic = ['version']
 description="Deal with NASA Ocean Color data (search and download)"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {file = "LICENSE"}
 keywords=["NASA", "Ocean Color", "chlorophyll", "oceanography", "matchup"]
 authors = [
