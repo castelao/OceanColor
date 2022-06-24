@@ -63,6 +63,10 @@ repository = "https://github.com/castelao/OceanColor"
 [tool.black]
 line-length = 79
 
+[tool.setuptools.packages.find]
+include = ['OceanColor', 'OceanColor.*']
+namespaces = false
+
 [tool.setuptools_scm]
 write_to = "OceanColor/version.py"
 git_describe_command = "git describe --dirty --tags --long --match 'v*' --first-parent"

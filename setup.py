@@ -2,8 +2,6 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
-setup(
-    packages=find_packages(include=['OceanColor', 'OceanColor.*']),
-)
+setup()
