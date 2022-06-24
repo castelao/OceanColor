@@ -3,17 +3,17 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python>=3.6
+  - python>=3.8
   - click>=8.0
   - h5netcdf
   - h5py
   - hdf5
-  - loky>=2.8
+  - loky>=2.9
   - netcdf4>=1.5.4
-  - numpy>=1.17
-  - pandas>=1.0
+  - numpy>=1.21
+  - pandas>=1.2
   - proj
   - pytables
   - requests
-  - xarray>=0.16
+  - xarray>=0.18
   - pytest>=5.4
