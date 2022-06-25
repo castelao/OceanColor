@@ -37,7 +37,7 @@ jobs:
 
     - name: Cache sample data
       id: cache-samples
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           MODIS-Aqua/L3m/2017/012/A2017012.L3m_DAY_CHL_chlor_a_4km.nc
