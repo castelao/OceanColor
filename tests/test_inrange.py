@@ -17,6 +17,7 @@ from OceanColor.OceanColor import InRange
 
 username = os.getenv("NASA_USERNAME")
 password = os.getenv("NASA_PASSWORD")
+assert (username is not None) and (password is not None), "Missing username and password"
 
 db = OceanColorDB(username, password)
 db.backend = FileSystem('./')
