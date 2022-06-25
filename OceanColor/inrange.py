@@ -99,7 +99,9 @@ class InRange(object):
 
         output.index += self.RESULT_POSITION
         self.RESULT_POSITION = output.index.max() + 1
-        self.logger.debug(f"Updating RESULT_POSITION to {self.RESULT_POSITION}")
+        self.logger.debug(
+            f"Updating RESULT_POSITION to {self.RESULT_POSITION}"
+        )
 
         return output
 
