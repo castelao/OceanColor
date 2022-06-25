@@ -135,3 +135,19 @@ def test_InRange_early_termination():
   matchup = InRange(username, password, './', npes=3)
   matchup.search(track, sensor, dtype, dt_tol, dL_tol)
   # End environment without ever using it
+
+
+def test_InRange_monotonic_index():
+    """
+    Improve this verifying that response resulted from more than one granule
+    """
+    sensor = 'aqua'
+    dtype = 'L3m'
+    # dtype = 'L2'
+    dL_tol = 12e3
+    dt_tol = timedelta64(12, 'h')
+    track = DataFrame([ {"time": datetime64("2016-09-01 10:00:00"), "lat": 35.6, "lon": -126.81}, {"time": datetime64("2016-09-01 22:00:00"), "lat": 34, "lon": -126}])
+    matchup = InRange(username, password, './', npes=3)
+    matchup.search(track, sensor, dtype, dt_tol, dL_tol)
+    output = pd.concat(matchup)
+    assert not output.index.duplicated().any()
