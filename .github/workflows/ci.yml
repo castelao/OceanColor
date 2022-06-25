@@ -41,6 +41,8 @@ jobs:
       with:
         path: |
           MODIS-Aqua/L3m/2017/012/A2017012.L3m_DAY_CHL_chlor_a_4km.nc
+          MODIS-Aqua/L2/2016/244/A2016244221000.L2_LAC_OC.nc
+          MODIS-Aqua/L2/2016/245/A2016245211500.L2_LAC_OC.nc
           MODIS-Aqua/L2/2017/012/A2017012213500.L2_LAC_OC.nc
           MODIS-Terra/L3m/2004/006/T2004006.L3m_DAY_CHL_chlor_a_4km.nc
           VIIRS-SNPP/L2/2017/013/V2017013002400.L2_SNPP_OC.nc
