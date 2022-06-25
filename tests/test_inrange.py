@@ -137,8 +137,6 @@ def test_InRange_early_termination():
   # End environment without ever using it
 
 
-import pytest
-@pytest.mark.skip("Why is it getting stuck?")
 def test_InRange_monotonic_index():
     """
     Improve this verifying that response resulted from more than one granule
