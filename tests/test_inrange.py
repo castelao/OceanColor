@@ -142,7 +142,7 @@ def test_InRange_monotonic_index():
     Improve this verifying that response resulted from more than one granule
     """
     sensor = 'aqua'
-    dtype = 'L3m'
+    dtype = 'L2'
     # dtype = 'L2'
     dL_tol = 12e3
     dt_tol = timedelta64(12, 'h')
