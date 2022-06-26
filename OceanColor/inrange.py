@@ -95,6 +95,14 @@ class InRange(object):
         output = self.queue.get()
         if isinstance(output, str) and (output == "END"):
             raise StopIteration
+        assert isinstance(output, pd.DataFrame), "Expected a pd.DataFrame"
+
+        output.index += self.RESULT_POSITION
+        self.RESULT_POSITION = output.index.max() + 1
+        self.logger.debug(
+            f"Updating RESULT_POSITION to {self.RESULT_POSITION}"
+        )
+
         return output
 
     def search(self, track, sensor, dtype, dt_tol, dL_tol):
@@ -108,6 +116,9 @@ class InRange(object):
         dt_tol:
         dL_tol:
         """
+        self.logger.debug("Reseting RESULT_POSITION to 0")
+        self.RESULT_POSITION = 0
+
         self.logger.debug("Searching for matchups.")
         if LOKY_AVAILABLE:
             scanner = self.scanner
