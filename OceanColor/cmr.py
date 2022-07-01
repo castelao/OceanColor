@@ -117,6 +117,7 @@ def search_criteria(**kwargs):
     assert kwargs["sensor"] in ["seawifs", "aqua", "terra", "snpp"]
     assert kwargs["dtype"] in ("L2", "L3m")
 
+    criteria = None
     if kwargs["sensor"] == "seawifs":
         if kwargs["dtype"] == "L2":
             criteria = {"short_name": "SEAWIFS_L2_OC", "provider": "OB_DAAC"}
@@ -137,7 +138,8 @@ def search_criteria(**kwargs):
             criteria = {"short_name": "MODIST_L2_OC", "provider": "OB_DAAC"}
         elif kwargs["dtype"] == "L3m":
             criteria = {"short_name": "MODIST_L3m_CHL", "provider": "OB_DAAC"}
-    else:
+
+    if criteria is None:
         raise ValueError
     module_logger.debug("searching criteria: {}".format(criteria))
     return criteria
