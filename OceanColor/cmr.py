@@ -141,7 +141,8 @@ def search_criteria(**kwargs):
 
     if criteria is None:
         raise ValueError
-    module_logger.debug("searching criteria: {}".format(criteria))
+
+    module_logger.debug(f"Defined searching criteria: {criteria}")
     return criteria
 
 
