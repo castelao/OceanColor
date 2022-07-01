@@ -124,6 +124,12 @@ def search_criteria(**kwargs):
     elif kwargs["sensor"] == "snpp":
         if kwargs["dtype"] == "L2":
             criteria = {"short_name": "VIIRSN_L2_OC", "provider": "OB_DAAC"}
+        elif kwargs["dtype"] == "L3m":
+            criteria = {
+                "short_name": "VIIRSN_L3m_CHL",
+                "provider": "OB_DAAC",
+                "search": "DAY_SNPP_CHL_chlor_a_4km",
+            }
     elif kwargs["sensor"] == "aqua":
         if kwargs["dtype"] == "L2":
             criteria = {"short_name": "MODISA_L2_OC", "provider": "OB_DAAC"}
