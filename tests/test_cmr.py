@@ -4,6 +4,7 @@
 
 from numpy import datetime64, timedelta64
 import pandas as pd
+import pytest
 
 from OceanColor.cmr import api_walk, bloom_filter, granules_search, search_criteria
 
@@ -99,6 +100,10 @@ def test_search_criteria():
     assert search["short_name"] == "MODISA_L3m_CHL"
     assert search["provider"] == "OB_DAAC"
 
+
+def test_search_criteria_nonexistent_key():
+    with pytest.raises(ValueError):
+        search_criteria(sensor="seawifs", dtype="nonexistent")
 
 """
 {'cdate': '2019-08-05 21:23:16', 'checksum': 'sha1:97b97ec2bc5c59255fd8e5ec8551f7bebb6f8be5', 'getfile': 'https://oceandata.sci.gsfc.nasa.gov/ob/getfile', 'size': 9881732, 'filename': 'A2019152.L3m_DAY_CHL_chlor_a_4km.nc'}
