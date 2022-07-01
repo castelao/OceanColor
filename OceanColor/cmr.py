@@ -115,7 +115,8 @@ def search_criteria(**kwargs):
 
     """
     assert kwargs["sensor"] in ["seawifs", "aqua", "terra", "snpp"]
-    assert kwargs["dtype"] in ("L2", "L3m")
+    if kwargs["dtype"] not in ("L2", "L3m"):
+        raise ValueError
 
     criteria = None
     if kwargs["sensor"] == "seawifs":
