@@ -44,14 +44,13 @@ def api_walk(url, page_size=25, offset=0, **kwargs):
     """
     kwargs["page_size"] = page_size
     kwargs["offset"] = offset
-    module_logger.debug("api_walk() with kwargs: {}".format(kwargs))
+    module_logger.debug(f"api_walk() with kwargs: {kwargs}")
     r = requests.get(url, params=kwargs)
     if r.status_code != 200:
-        module_logger.warning("Failed {}".format(r.status_code))
+        module_logger.warning(f"Failed {r.status_code}")
     assert r.status_code == 200
     content = r.json()
-    for item in content["items"]:
-        yield item
+    yield from content["items"]
 
     kwargs["offset"] += len(content["items"])
     if kwargs["offset"] < content["hits"]:
@@ -204,7 +203,7 @@ def bloom_filter(
     instance, the full history of an Argo profiler would result in a huge list
     of granules, where the end of the time series should not include the region
     where it started.
-      
+
     Examples
     --------
     >>> track = [{"time": np.datetime64('2019-05-01'), "lat": 18, "lon": 38}]
@@ -231,7 +230,9 @@ def bloom_filter(
     if (len(dt) > 1) and (dt.max() > 2 * dt_tol):
         time_split = chrono.iloc[dt.argmax()]
         module_logger.debug(
-            "Sparse track. bloom_filter() will split search at: {}".format(time_split)
+            "Sparse track. bloom_filter() will split search at: {}".format(
+                time_split
+            )
         )
         yield from bloom_filter(
             track=track[track.time < time_split],
@@ -267,12 +268,14 @@ def bloom_filter(
             datetime_as_string(stime, unit="s"),
             datetime_as_string(etime, unit="s"),
         )
-        circle = "{},{},{}".format(p.lon, p.lat, dL_tol)
+        circle = f"{p.lon},{p.lat},{dL_tol}"
         for g in granules_search(temporal=temporal, circle=circle, **criteria):
             if (rule is None) or rule.search(g):
                 if g not in memory:
                     memory.append(g)
-                    module_logger.debug("New result from bloom_filter: {}".format(g))
+                    module_logger.debug(
+                        f"New result from bloom_filter: {g}"
+                    )
                     yield g
 
 
