@@ -37,9 +37,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-${{ matrix.python-version }-pip-${{ hashFiles('**/pyproject.toml') }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/pyproject.toml') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.python-version }-pip-
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
 
     - name: Install dependencies
       run: |
