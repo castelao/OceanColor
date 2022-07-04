@@ -46,7 +46,7 @@ dependencies = [
 parallel = ["loky >= 2.9"]
 s3 = [
   "s3fs >= 2022.1.0",
-  "zarr >= 2.8.1"
+  "zarr >= 2.10"
   ]
 
 [project.urls]
