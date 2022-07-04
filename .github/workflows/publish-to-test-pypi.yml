@@ -2,6 +2,7 @@ name: Pyblish distributions to PyPI and TestPyPI
 
 on:
   push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
