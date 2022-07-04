@@ -2,7 +2,6 @@ name: Pyblish distributions to PyPI and TestPyPI
 
 on:
   push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -36,7 +35,9 @@ jobs:
         .
 
     - name: Check distribution files
-      run: twine check dist/*
+      run: |
+        pip install twine
+        twine check dist/*
 
     # - name: Publish distribution package to Test PyPI
     #  uses: pypa/gh-action-pypi-publish@master
