@@ -31,7 +31,7 @@ classifiers=[
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "Click >= 7.1.1",
+  "Click >= 8.0",
   "numpy >= 1.21",
   "h5netcdf >= 0.8",
   "h5py >= 2.10",
@@ -40,7 +40,7 @@ dependencies = [
   "pandas >= 1.2",
   "pyproj >= 2.6",
   "requests >= 2.23",
-  "xarray >= 0.18",
+  "xarray >= 0.19",
   "fsspec >= 2022.5.0",
   "aiohttp >= 3.8.1",
 ]
