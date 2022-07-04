@@ -1,7 +1,7 @@
 name: Pyblish distributions to PyPI and TestPyPI
 
 on:
-  # push:
+  push:
   workflow_dispatch:
 
 jobs:
