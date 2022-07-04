@@ -1,4 +1,4 @@
-name: Pyblish distributions to PyPI and TestPyPI
+name: Publish distributions to PyPI and TestPyPI
 
 on:
   push:
