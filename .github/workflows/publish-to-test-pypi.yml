@@ -34,6 +34,9 @@ jobs:
         --outdir dist/
         .
 
+    - name: Check distribution files
+      run: twine check dist/*
+
     # - name: Publish distribution package to Test PyPI
     #  uses: pypa/gh-action-pypi-publish@master
     #  with:
@@ -44,5 +47,6 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+        verify_metadata: false
         verbose: true
         print_hash: true
