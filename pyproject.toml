@@ -43,11 +43,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+  "black~=23.9.0",
+  "flake8~=4.0.1",
+  "pyupgrade~=3.2.2",
+  "pre-commit~=2.20.0",
+  "sphinx_rtd_theme~=0.4.3"
+]
 parallel = ["loky >= 2.9"]
 s3 = [
   "s3fs >= 2022.1",
   "zarr >= 2.10"
   ]
+test = ["pytest", "pytest-cov>=3.0"]
+
 
 [project.urls]
 homepage = "https://github.com/castelao/OceanColor"
