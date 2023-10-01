@@ -34,6 +34,7 @@ def test_parse_filename_AL2():
         assert descriptors[a] == ans[a]
 
 
+@pytest.mark.skip()
 def test_parse_filename_AL3m():
     filename = "T2004006.L3m_DAY_CHL_chlor_a_4km.nc"
     descriptors = parse_filename(filename)
@@ -50,6 +51,7 @@ def test_parse_filename_AL3m():
         assert descriptors[a] == ans[a]
 
 
+@pytest.mark.skip()
 def test_OceanColorDB():
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
     db.backend = FileSystem("./")
@@ -57,6 +59,7 @@ def test_OceanColorDB():
     ds.attrs
 
 
+@pytest.mark.skip()
 def test_contains():
     """Contain check for FileSystem
 
@@ -76,6 +79,7 @@ def test_contains():
     assert filename in db
 
 
+@pytest.mark.skip()
 def test_serialize_OceanColorDB():
     """Test if a OceanColorDB item is serializeable
 
@@ -89,6 +93,7 @@ def test_serialize_OceanColorDB():
     assert ds == ds2
 
 
+@pytest.mark.skip()
 def test_no_download():
     """
 

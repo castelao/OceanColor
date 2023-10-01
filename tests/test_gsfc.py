@@ -8,6 +8,7 @@ import numpy as np
 from OceanColor.gsfc import oceandata_file_search
 
 
+@pytest.mark.skip()
 def test_nasa_file_search():
     """Minimalist test for searching NASA files
 

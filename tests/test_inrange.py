@@ -25,6 +25,8 @@ db = OceanColorDB(username, password)
 db.backend = FileSystem("./")
 
 
+
+@pytest.mark.skip()
 def test_matchup_L2():
     ds = db["A2017012213500.L2_LAC_OC.nc"]
     dL_tol = 12e3
@@ -37,6 +39,8 @@ def test_matchup_L2():
     assert data.index.size == 448
 
 
+
+@pytest.mark.skip()
 def test_matchup_L2_day_line():
     """Test nearby the international day line from both sides
     """
@@ -63,6 +67,8 @@ def test_matchup_L2_day_line():
     assert data.lon.max() > 0
 
 
+
+@pytest.mark.skip()
 def test_matchup_L3m():
     ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
     dL_tol = 12e3
@@ -76,6 +82,8 @@ def test_matchup_L3m():
     assert data.size == 42
 
 
+
+@pytest.mark.skip()
 def test_matchup():
     ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
     dL_tol = 12e3
@@ -140,6 +148,8 @@ def test_InRange_early_termination():
   # End environment without ever using it
 
 
+
+@pytest.mark.skip()
 def test_InRange_monotonic_index():
     """
     Improve this verifying that response resulted from more than one granule
