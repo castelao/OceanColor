@@ -2,7 +2,8 @@
 """
 
 import logging
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 
 from numpy import datetime64, datetime_as_string
 import re
@@ -155,7 +156,7 @@ def search_criteria(**kwargs):
 
 
 def bloom_filter(
-    track: Sequence[Dict],
+    track: Sequence[dict],
     sensor: [Sequence[str], str],
     dtype: str,
     dt_tol: float,
@@ -275,9 +276,7 @@ def bloom_filter(
             if (rule is None) or rule.search(g):
                 if g not in memory:
                     memory.append(g)
-                    module_logger.debug(
-                        f"New result from bloom_filter: {g}"
-                    )
+                    module_logger.debug(f"New result from bloom_filter: {g}")
                     yield g
 
 
