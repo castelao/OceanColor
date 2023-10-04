@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Sequence
 from numpy import datetime64, datetime_as_string
 import re
 import requests
+from cmr import GranuleQuery
 
 module_logger = logging.getLogger(__name__)
 
@@ -92,11 +93,12 @@ def granules_search(
         "temporal": temporal,
         "circle": circle,
     }
-    for result in api_walk(url, **params):
-        # for r in result['umm']['RelatedUrls']:
-        for r in result["umm"]["DataGranule"]["Identifiers"]:
-            if r["IdentifierType"] == "ProducerGranuleId":
-                yield r["Identifier"]
+    api = GranuleQuery()
+    api.params = params
+    granules = api.downloadable().get()
+    print([g["producer_granule_id"] for g in granules])
+    for granule in api.get():
+        yield granule['producer_granule_id']
 
 
 def search_criteria(**kwargs):
@@ -128,7 +130,7 @@ def search_criteria(**kwargs):
             criteria = {
                 "short_name": "VIIRSN_L3m_CHL",
                 "provider": "OB_DAAC",
-                "search": "DAY_SNPP_CHL_chlor_a_4km",
+                "search": "DAY.SNPP.CHL.chlor_a.4km",
             }
     elif kwargs["sensor"] == "aqua":
         if kwargs["dtype"] == "L2":
@@ -137,7 +139,7 @@ def search_criteria(**kwargs):
             criteria = {
                 "short_name": "MODISA_L3m_CHL",
                 "provider": "OB_DAAC",
-                "search": "DAY_CHL_chlor_a_4km",
+                "search": "DAY.CHL.chlor_a.4km",
             }
     elif kwargs["sensor"] == "terra":
         if kwargs["dtype"] == "L2":
@@ -265,8 +267,8 @@ def bloom_filter(
     # Plus it would require to split on space such as it is done on time.
     for _, p in track.iterrows():
         temporal = "{},{}".format(
-            datetime_as_string(stime, unit="s"),
-            datetime_as_string(etime, unit="s"),
+            datetime_as_string(stime, unit="s", timezone="UTC"),
+            datetime_as_string(etime, unit="s", timezone="UTC"),
         )
         circle = f"{p.lon},{p.lat},{dL_tol}"
         for g in granules_search(temporal=temporal, circle=circle, **criteria):
