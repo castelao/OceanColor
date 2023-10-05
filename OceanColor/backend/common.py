@@ -249,9 +249,9 @@ class Filename(object):
 
         if attrs["platform"] == "S":
             return "SeaWIFS"
-        elif attrs["platform"] == "A":
+        elif attrs["platform"] == "AQUA_MODIS":
             return "MODIS-Aqua"
-        elif attrs["platform"] == "T":
+        elif attrs["platform"] == "TERRA_MODIS":
             return "MODIS-Terra"
         elif attrs["platform"] == "V":
             if attrs["instrument"] == "JPSS1":
@@ -265,7 +265,8 @@ class Filename(object):
             self.mission,
             self.attrs["mode"],
             self.attrs["year"],
-            self.attrs["doy"],
+            self.attrs["month"],
+            self.attrs["day"],
         )
         return path
 
@@ -305,14 +306,16 @@ def parse_filename(filename: str):
       - V2018006230000.L2_JPSS1_OC.nc
     """
     rule = r"""
-        (?P<platform>[S|A|T|V])
+        (?P<platform>S|V|(?:AQUA_MODIS)|(?:TERRA_MODIS))
+        .
         (?P<year>\d{4})
-        (?P<doy>\d{3})
-        (?P<time>\d+)?
-        \.
+        (?P<month>\d{2})
+        (?P<day>\d{2})
+        .
         (?P<mode>(L2)|(L3m))
-        (?:_DAY)?
-        _ (?P<instrument>(?:SNPP)|(?:JPSS1))?
+        (?:.DAY)?
+        .
+        (?P<instrument>(?:SNPP)|(?:JPSS1))?
         .*?
         \.nc
         """
