@@ -33,7 +33,7 @@ class OceanColorDB(object):
     --------
     >>> db = OceanColorDB(username, password)
     >>> db.backend = FileSystem('./')
-    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    >>> ds = db['TERRA_MODIS.2004006.L3m.DAY.CHL.chlor_a.4km.nc']
     >>> ds.attrs
 
     Notes
