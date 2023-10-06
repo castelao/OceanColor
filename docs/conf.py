@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Ocean Color'
-copyright = "2018-{}, Guilherme Castelão".format(datetime.now().year)
+copyright = f"2018-{datetime.now().year}, Guilherme Castelão"
 author = "Guilherme Castelão"
 
 # The version info for the project you're documenting, acts as replacement

@@ -7,8 +7,10 @@ import pickle
 
 import pytest
 import xarray as xr
+
 try:
     import s3fs
+
     S3FS_AVAILABLE = True
 except:
     S3FS_AVAILABLE = False
@@ -20,7 +22,7 @@ from OceanColor.storage import OceanColorDB
 
 @pytest.mark.skip()
 def test_parse_filename_AL2():
-    filename = "A2011010000000.L2_LAC_OC.nc"
+    filename = "AQUA_MODIS.2011010T000000.L2_LAC_OC.nc"
     descriptors = parse_filename(filename)
 
     ans = {
@@ -119,7 +121,10 @@ def test_no_download():
 @pytest.mark.skip()
 def test_S3Storage_path():
     backend = S3Storage("s3://mybucket/datadir")
-    assert backend.path("A2019109.L3m_DAY_CHL_chlor_a_4km.nc") == 's3://mybucket/datadir/MODIS-Aqua/L3m/2019/109/A2019109.L3m_DAY_CHL_chlor_a_4km.zarr'
+    assert (
+        backend.path("AQUA_MODIS.20190420.L3m.DAY.CHL.chlor_a.4km.nc")
+        == "s3://mybucket/datadir/MODIS-Aqua/L3m/2019/109/AQUA_MODIS.2019109.L3m.DAY.CHL.chlor_a.4km.zarr"
+    )
 
 
 def test_inmemory():
@@ -129,16 +134,15 @@ def test_inmemory():
     - Create test data with @pytest.fixture
     """
     db = InMemory()
-    ds = xr.Dataset({"x": [1,2,3]})
+    ds = xr.Dataset({"x": [1, 2, 3]})
     db["test-1"] = ds
 
     assert "test-1" in db
 
 
 def test_inmemory_quota():
-    """Independent of the quota, at least one item
-    """
-    ds = xr.Dataset({"x": [1,2,3]})
+    """Independent of the quota, at least one item"""
+    ds = xr.Dataset({"x": [1, 2, 3]})
     db = InMemory(quota=ds.nbytes + 1)
     db["test-1"] = ds
     db["test-2"] = ds
@@ -148,10 +152,9 @@ def test_inmemory_quota():
 
 
 def test_inmemory_at_least_one():
-    """Independent of the quota, at least one item
-    """
+    """Independent of the quota, at least one item"""
     db = InMemory(quota=0)
-    ds = xr.Dataset({"x": [1,2,3]})
+    ds = xr.Dataset({"x": [1, 2, 3]})
     db["test-1"] = ds
 
     assert "test-1" in db
