@@ -295,10 +295,10 @@ def parse_filename(filename: str):
     Notes
     -----
     Examples of possible files:
-      - S2002006003729.L2_[GAC_IOP|GAC_OC|MLAC_OC].nc
-      - S2001006.L3m_DAY_[CHL_chlor_a|CHL_chl_ocx|ZLEE_Zeu_lee]_9km.nc
-      - A2011010000000.L2[_LAC_OC|_LAC_IOP|SST|SST4].nc
-      - T2004006.L3m[_DAY_CHL_chlor_a|_DAY_CHL_chl_ocx]_[4|9]km.nc
+      - SNPP_VIIRS.20190501T101200.L2.OC.nc
+      - SNPP_VIIRS.20190514.L3m.DAY.[CHL.chlor_a].[4|9]km.nc
+      - AQUA_MODIS.20190501T100501.L2.OC.nc
+      - TERRA_MODIS.20040106.L3m[.DAY.CHL.chlor_a|.DAY.CHL.chl_ocx].[4|9]km.nc
       - V2018007000000.L2_SNPP_OC.nc
       - V2015009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc
       - V2018006230000.L2_JPSS1_OC.nc
