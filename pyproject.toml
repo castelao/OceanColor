@@ -51,7 +51,10 @@ dev = [
   "pre-commit~=2.20.0",
   "sphinx_rtd_theme~=0.4.3"
 ]
-parallel = ["loky >= 2.9"]
+parallel = [
+  "dask >= 2022.1",
+  "loky >= 2.9"
+  ]
 s3 = [
   "s3fs >= 2022.1",
   "zarr >= 2.10"
