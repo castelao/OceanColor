@@ -46,7 +46,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "black~=23.9.0",
-  "flake8~=4.0.1",
   "pyupgrade~=3.2.2",
   "pre-commit~=2.20.0",
   "sphinx_rtd_theme~=0.4.3"
