@@ -55,7 +55,7 @@ def test_parse_filename_AL3m():
 def test_OceanColorDB():
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
     db.backend = FileSystem("./")
-    ds = db["T2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
+    ds = db["TERRA_MODIS.2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
     ds.attrs
 
 
@@ -73,13 +73,12 @@ def test_contains():
 
     # Check something that exists
     # Be sure that is was available or download it first
-    filename = "T2004006.L3m_DAY_CHL_chlor_a_4km.nc"
+    filename = "TERRA_MODIS.2004006.L3m_DAY_CHL_chlor_a_4km.nc"
     ds = db[filename]
     # then check (confirm) that it is available
     assert filename in db
 
 
-@pytest.mark.skip()
 def test_serialize_OceanColorDB():
     """Test if a OceanColorDB item is serializeable
 
@@ -87,7 +86,7 @@ def test_serialize_OceanColorDB():
     """
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
     db.backend = FileSystem("./")
-    ds = db["T2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
+    ds = db["TERRA_MODIS.20040106.L3m.DAY.CHL.chlor_a.4km.nc"]
     ds2 = pickle.loads(pickle.dumps(ds.compute()))
 
     assert ds == ds2
