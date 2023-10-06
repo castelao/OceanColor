@@ -253,11 +253,10 @@ class Filename(object):
             return "MODIS-Aqua"
         elif attrs["platform"] == "TERRA_MODIS":
             return "MODIS-Terra"
-        elif attrs["platform"] == "V":
-            if attrs["instrument"] == "JPSS1":
-                return "VIIRS-JPSS1"
-            elif attrs["instrument"] == "SNPP":
-                return "VIIRS-SNPP"
+        elif attrs["platform"] == "JPSS1_VIIRS":
+            return "VIIRS-JPSS1"
+        elif attrs["platform"] == "SNPP_VIIRS":
+            return "VIIRS-SNPP"
 
     @property
     def dirname(self):
@@ -306,7 +305,7 @@ def parse_filename(filename: str):
       - V2018006230000.L2_JPSS1_OC.nc
     """
     rule = r"""
-        (?P<platform>S|V|(?:AQUA_MODIS)|(?:TERRA_MODIS))
+        (?P<platform>S|(?:SNPP_VIIRS)|(?:JPSS1_VIIRS)|(?:AQUA_MODIS)|(?:TERRA_MODIS))
         .
         (?P<year>\d{4})
         (?P<month>\d{2})
