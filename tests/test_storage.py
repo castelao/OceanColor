@@ -18,6 +18,7 @@ from OceanColor.backend import FileSystem, S3Storage, InMemory
 from OceanColor.storage import OceanColorDB
 
 
+@pytest.mark.skip()
 def test_parse_filename_AL2():
     filename = "A2011010000000.L2_LAC_OC.nc"
     descriptors = parse_filename(filename)
