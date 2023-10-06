@@ -24,7 +24,7 @@ def test_parse_filename_AL2():
     descriptors = parse_filename(filename)
 
     ans = {
-        "platform": "A",
+        "platform": "AQUA_MODIS",
         "year": "2011",
         "doy": "010",
         "time": "000000",

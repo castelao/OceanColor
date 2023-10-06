@@ -65,10 +65,8 @@ def test_matchup_L2_day_line():
     assert data.lon.max() > 0
 
 
-
-@pytest.mark.skip()
 def test_matchup_L3m():
-    ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
+    ds = db["AQUA_MODIS.20170112.L3m.DAY.CHL.chlor_a.4km.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
@@ -76,14 +74,12 @@ def test_matchup_L3m():
     data = matchup_L3m(track, ds, dL_tol, dt_tol)
 
     # Dummy check
-    assert data.index.size == 7
-    assert data.size == 42
+    assert data.index.size == 23
+    assert data.size == 138
 
 
-
-@pytest.mark.skip()
 def test_matchup():
-    ds = db["A2017012.L3m_DAY_CHL_chlor_a_4km.nc"]
+    ds = db["AQUA_MODIS.20170112.L3m.DAY.CHL.chlor_a.4km.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
@@ -91,8 +87,8 @@ def test_matchup():
     data = matchup(track, ds, dL_tol, dt_tol)
 
     # Dummy check
-    assert data.index.size == 7
-    assert data.size == 42
+    assert data.index.size == 23
+    assert data.size == 138
 
 
 @pytest.mark.skip()
