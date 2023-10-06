@@ -34,16 +34,15 @@ def test_parse_filename_AL2():
         assert descriptors[a] == ans[a]
 
 
-@pytest.mark.skip()
 def test_parse_filename_AL3m():
-    filename = "T2004006.L3m_DAY_CHL_chlor_a_4km.nc"
+    filename = "TERRA_MODIS.20040106.L3m.DAY.CHL.chlor_a.4km.nc"
     descriptors = parse_filename(filename)
 
     ans = {
-        "platform": "T",
+        "platform": "TERRA_MODIS",
         "year": "2004",
-        "doy": "006",
-        "time": None,
+        "month": "01",
+        "day": "06",
         "mode": "L3m",
         "instrument": None,
     }
@@ -51,11 +50,10 @@ def test_parse_filename_AL3m():
         assert descriptors[a] == ans[a]
 
 
-@pytest.mark.skip()
 def test_OceanColorDB():
     db = OceanColorDB(os.getenv("NASA_USERNAME"), os.getenv("NASA_PASSWORD"))
     db.backend = FileSystem("./")
-    ds = db["TERRA_MODIS.2004006.L3m_DAY_CHL_chlor_a_4km.nc"]
+    ds = db["TERRA_MODIS.20040106.L3m.DAY.CHL.chlor_a.4km.nc"]
     ds.attrs
 
 
