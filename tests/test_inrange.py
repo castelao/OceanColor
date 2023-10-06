@@ -25,10 +25,8 @@ db = OceanColorDB(username, password)
 db.backend = FileSystem("./")
 
 
-
-@pytest.mark.skip()
 def test_matchup_L2():
-    ds = db["A2017012213500.L2_LAC_OC.nc"]
+    ds = db["AQUA_MODIS.20170112T213500.L2.OC.nc"]
     dL_tol = 12e3
     dt_tol = timedelta64(6, 'h')
     track = DataFrame([
