@@ -57,7 +57,7 @@ class BaseStorage(ABC):
         raise NotImplementedError("Missing __setitem__ for this Backend")
 
 
-class FileSystem(object):
+class FileSystem:
     """Backend for OceanColorDB based on files and directories
 
     A file system backend for OceanColorDB to save the data files in
@@ -197,8 +197,7 @@ class S3Storage(BaseStorage):
         return ds
 
     def __setitem__(self, index, ds):
-        """Saves Dataset ds identified by index
-        """
+        """Saves Dataset ds identified by index"""
         if not isinstance(ds, xr.Dataset):
             self.logger.warn("Trying to save a non xr.Dataset object")
             raise ValueError
@@ -216,7 +215,7 @@ class S3Storage(BaseStorage):
         return p.replace(".nc", ".zarr")
 
 
-class Filename(object):
+class Filename:
     """Parse implicit information on NASA's filename
 
     NASA's data filename, and granules, follows a logical standard that can be
@@ -338,7 +337,7 @@ class InMemory(BaseStorage):
 
     __data = OrderedDict()
 
-    def __init__(self, quota: int = 5 * 1024 ** 3):
+    def __init__(self, quota: int = 5 * 1024**3):
         """Initialize an InMemory object
 
         Parameters

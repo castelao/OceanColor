@@ -14,6 +14,7 @@ import threading
 import xarray as xr
 
 from .gsfc import read_remote_file
+
 # To guarantee backward compatibility
 from .backend import *
 
@@ -21,7 +22,7 @@ from .backend import *
 module_logger = logging.getLogger("OceanColor.storage")
 
 
-class OceanColorDB(object):
+class OceanColorDB:
     """An abstraction of NASA's Ocean Color database
 
     While OceanColorDB provides access to NASA's ocean color data, it is the
@@ -87,7 +88,7 @@ class OceanColorDB(object):
             return self._download(key)
 
     def _download(self, index):
-        module_logger.debug("Downloading from Ocean Color: {}".format(index))
+        module_logger.debug(f"Downloading from Ocean Color: {index}")
         # Probably move this reading from remote to another function
         content = self._remote_content(index)
         # ds = xr.open_dataset(BytesIO(content))

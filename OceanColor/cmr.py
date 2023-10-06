@@ -99,7 +99,7 @@ def granules_search(
     granules = api.downloadable().get()
     print([g["producer_granule_id"] for g in granules])
     for granule in api.get():
-        yield granule['producer_granule_id']
+        yield granule["producer_granule_id"]
 
 
 def search_criteria(**kwargs):

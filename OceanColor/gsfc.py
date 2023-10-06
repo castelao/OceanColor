@@ -4,7 +4,8 @@ Some functionalities that use NASA's GSFC
 
 import json
 import logging
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 import urllib
 
 import aiohttp
@@ -76,7 +77,9 @@ def oceandata_file_search(
     if (edate - sdate) > block:
         for start in np.arange(sdate, edate, block):
             end = start + block - np.timedelta64(1, "D")
-            filenames = oceandata_file_search(sensor, dtype, start, end, search)
+            filenames = oceandata_file_search(
+                sensor, dtype, start, end, search
+            )
             yield from filenames
         return
 
@@ -178,7 +181,7 @@ track
 
 
 def bloom_filter(
-    track: Sequence[Dict],
+    track: Sequence[dict],
     sensor: [Sequence[str], str],
     dtype: str,
     dt_tol: Optional[Any] = None,
@@ -214,8 +217,7 @@ def bloom_filter(
 
     search = search_criteria(sensor=sensor, dtype=dtype)
     filenames = oceandata_file_search(sensor, dtype, sdate, edate, search)
-    for f in filenames:
-        yield f
+    yield from filenames
 
 
 def read_remote_file(filename, username, password):
@@ -227,7 +229,9 @@ def read_remote_file(filename, username, password):
     url_base = "https://oceandata.sci.gsfc.nasa.gov/ob/getfile/"
     url = requests.compat.urljoin(url_base, filename)
 
-    fs = fsspec.filesystem('https', client_kwargs={'auth': aiohttp.BasicAuth(username, password)})
+    fs = fsspec.filesystem(
+        "https", client_kwargs={"auth": aiohttp.BasicAuth(username, password)}
+    )
     f = fs.open(url)
     content = f.read()
     return content
