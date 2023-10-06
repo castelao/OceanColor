@@ -58,7 +58,6 @@ def test_OceanColorDB():
     ds.attrs
 
 
-@pytest.mark.skip()
 def test_contains():
     """Contain check for FileSystem
 
@@ -72,7 +71,7 @@ def test_contains():
 
     # Check something that exists
     # Be sure that is was available or download it first
-    filename = "TERRA_MODIS.2004006.L3m_DAY_CHL_chlor_a_4km.nc"
+    filename = "TERRA_MODIS.20040106.L3m.DAY.CHL.chlor_a.4km.nc"
     ds = db[filename]
     # then check (confirm) that it is available
     assert filename in db
@@ -91,7 +90,6 @@ def test_serialize_OceanColorDB():
     assert ds == ds2
 
 
-@pytest.mark.skip()
 def test_no_download():
     """
 
@@ -105,7 +103,7 @@ def test_no_download():
     )
     db.backend = FileSystem("./")
 
-    filename = "V2000009.L3m_DAY_SNPP_CHL_chlor_a_4km.nc"
+    filename = "SNPP_VIIRS.20000109.L3m.DAY.SNPP.CHL.chlor_a.4km.nc"
     # Confirm that it is not available, otherwise this test doesn't make sense
     assert filename not in db
 
