@@ -94,7 +94,7 @@ class OceanColorDB:
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
-            self.logger.debug("Saving to temporary file: {tmp.name}")
+            self.logger.debug(f"Saving to temporary file: {tmp.name}")
             tmp.write(content)
             tmp.flush()
 
