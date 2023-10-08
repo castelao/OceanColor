@@ -272,12 +272,14 @@ def bloom_filter(
             datetime_as_string(etime, unit="s", timezone="UTC"),
         )
         circle = f"{p.lon},{p.lat},{dL_tol}"
+        module_logger.debug(f"Searching granules around: {circle}")
         for g in granules_search(temporal=temporal, circle=circle, **criteria):
             if (rule is None) or rule.search(g):
                 if g not in memory:
                     memory.append(g)
                     module_logger.debug(f"New result from bloom_filter: {g}")
                     yield g
+    module_logger.debug(f"Finished loop on track (bloom_filter)")
 
 
 """
