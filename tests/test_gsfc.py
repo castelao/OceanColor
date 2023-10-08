@@ -13,10 +13,12 @@ def test_nasa_file_search():
 
     I should expand this into several tests.
     """
-    file_list = oceandata_file_search('aqua',
-                                 'L3m',
-                                 np.datetime64('2019-06-01'),
-                                 np.datetime64('2019-06-01'),
-                                 ['*DAY_CHL_chlor_a_4km*'])
-    ans = 'A2019152.L3m_DAY_CHL_chlor_a_4km.nc'
-    assert ans in [f['filename'] for f in file_list]
+    file_list = oceandata_file_search(
+        "aqua",
+        "L3m",
+        np.datetime64("2019-06-01"),
+        np.datetime64("2019-06-01"),
+        ["*DAY.CHL.chlor_a.4km*"],
+    )
+    ans = "AQUA_MODIS.20190601.L3m.DAY.CHL.chlor_a.4km.nc"
+    assert ans in [f["filename"] for f in file_list]

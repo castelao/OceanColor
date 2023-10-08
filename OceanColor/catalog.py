@@ -2,7 +2,8 @@
 
 import logging
 import os
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -35,7 +36,7 @@ def ds_attrs(ds):
     return output
 
 
-class Catalog(object):
+class Catalog:
     """
 
     ToDo
@@ -49,10 +50,12 @@ class Catalog(object):
     """
 
     def __init__(self, dbfilename):
-        self.store = pd.HDFStore(dbfilename, mode="a", complevel=9, fletcher32=True)
+        self.store = pd.HDFStore(
+            dbfilename, mode="a", complevel=9, fletcher32=True
+        )
 
     def __getitem__(self, product_name):
-        record = self.store.select("catalog", "index == '{}'".format(product_name))
+        record = self.store.select("catalog", f"index == '{product_name}'")
         if record.size == 0:
             raise KeyError
 
@@ -76,7 +79,9 @@ class Catalog(object):
         self.store.append("catalog", value, format="t", data_columns=True)
 
     def __del__(self):
-        module_logger.debug("Closing Catalog's storage: {}".format(self.store.filename))
+        module_logger.debug(
+            f"Closing Catalog's storage: {self.store.filename}"
+        )
         # self.store.flush()
         self.store.close()
 
@@ -88,18 +93,22 @@ class Catalog(object):
         assert attrs["product_name"] not in self, (
             "There is a record in the database for %s" % attrs["filename"]
         )
-        module_logger.debug("New record: {}".format(attrs))
+        module_logger.debug(f"New record: {attrs}")
         attrs = pd.DataFrame([attrs])
         attrs = attrs.set_index("product_name")
         # if ('catalog' in self.store):
         #     tmp = tmp.set_index(tmp.index + self.store.catalog.index.max() + 1)
         self.store.append(
-            "catalog", attrs, format="t", data_columns=True, min_itemsize={"values": 42}
+            "catalog",
+            attrs,
+            format="t",
+            data_columns=True,
+            min_itemsize={"values": 42},
         )
 
     def bloom_filter(
         self,
-        track: Sequence[Dict],
+        track: Sequence[dict],
         sensor: Optional[Any] = None,
         dtype: Optional[Any] = None,
         dt_tol: Optional[Any] = None,
@@ -113,12 +122,11 @@ class Catalog(object):
         cond = []
         cond.append("time_coverage_end >= %r" % (track.time.min() - dt_tol))
         cond.append("time_coverage_start <= %r" % (track.time.max() + dt_tol))
-        cond.append("geospatial_lat_max > {}".format(track.lat.min()))
-        cond.append("geospatial_lat_min > {}".format(track.lat.max()))
+        cond.append(f"geospatial_lat_max > {track.lat.min()}")
+        cond.append(f"geospatial_lat_min > {track.lat.max()}")
         cond.append(
             "(geospatial_lon_min <= {} & geospatial_lon_max >= {}) or (geospatial_lon_max < 0 & geospatial_lon_min > 0)".format(
                 track.lon.max(), track.lon.min()
             )
         )
-        for f in self.store.select("catalog", where=cond).index:
-            yield f
+        yield from self.store.select("catalog", where=cond).index

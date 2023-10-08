@@ -14,6 +14,7 @@ import threading
 import xarray as xr
 
 from .gsfc import read_remote_file
+
 # To guarantee backward compatibility
 from .backend import *
 
@@ -21,7 +22,7 @@ from .backend import *
 module_logger = logging.getLogger("OceanColor.storage")
 
 
-class OceanColorDB(object):
+class OceanColorDB:
     """An abstraction of NASA's Ocean Color database
 
     While OceanColorDB provides access to NASA's ocean color data, it is the
@@ -33,7 +34,7 @@ class OceanColorDB(object):
     --------
     >>> db = OceanColorDB(username, password)
     >>> db.backend = FileSystem('./')
-    >>> ds = db['T2004006.L3m_DAY_CHL_chlor_a_4km.nc']
+    >>> ds = db['TERRA_MODIS.2004006.L3m.DAY.CHL.chlor_a.4km.nc']
     >>> ds.attrs
 
     Notes
@@ -87,13 +88,13 @@ class OceanColorDB(object):
             return self._download(key)
 
     def _download(self, index):
-        module_logger.debug("Downloading from Ocean Color: {}".format(index))
+        module_logger.debug(f"Downloading from Ocean Color: {index}")
         # Probably move this reading from remote to another function
         content = self._remote_content(index)
         # ds = xr.open_dataset(BytesIO(content))
         # Seems like it can't read groups using BytesIO
         with tempfile.NamedTemporaryFile(mode="w+b", delete=True) as tmp:
-            self.logger.debug("Saving to temporary file: {tmp.name}")
+            self.logger.debug(f"Saving to temporary file: {tmp.name}")
             tmp.write(content)
             tmp.flush()
 

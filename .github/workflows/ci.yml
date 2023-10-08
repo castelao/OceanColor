@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
     - name: Install System requirements
@@ -29,7 +29,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -46,19 +46,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install -e .[parallel,s3]
+        pip install -e .[dev,parallel,s3]
 
     - name: Cache sample data
       id: cache-samples
       uses: actions/cache@v3
       with:
         path: |
-          MODIS-Aqua/L3m/2017/012/A2017012.L3m_DAY_CHL_chlor_a_4km.nc
-          MODIS-Aqua/L2/2016/244/A2016244221000.L2_LAC_OC.nc
-          MODIS-Aqua/L2/2016/245/A2016245211500.L2_LAC_OC.nc
-          MODIS-Aqua/L2/2017/012/A2017012213500.L2_LAC_OC.nc
-          MODIS-Terra/L3m/2004/006/T2004006.L3m_DAY_CHL_chlor_a_4km.nc
-          VIIRS-SNPP/L2/2017/013/V2017013002400.L2_SNPP_OC.nc
+          MODIS-Aqua/L3m/2017/01/12/AQUA_MODIS.20170112.L3m.DAY.CHL.chlor_a.4km.nc
+          MODIS-Aqua/L2/2016/08/31/AQUA_MODIS.20160831T221001.L2.OC.nc
+          MODIS-Aqua/L2/2016/09/01/AQUA_MODIS.20160901T211500.L2.OC.nc
+          MODIS-Aqua/L2/2017/01/12/AQUA_MODIS.20170112T213500.L2.OC.nc
+          MODIS-Terra/L3m/2004/01/06/TERRA_MODIS.20040106.L3m.DAY.CHL.chlor_a.4km.nc
+          VIIRS-SNPP/L2/2017/01/13/SNPP_VIIRS.20170113T002400.L2.OC.nc
         key: ${{ runner.os }}-CHL
 
     - name: Test with pytest

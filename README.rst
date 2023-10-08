@@ -29,7 +29,7 @@ situ observations by searching pixels within a given time and distance tolerance
 For instance, it is used to calibrate chlorophyll fluorescence measurements
 from Spray underwater gliders.
 
-The OceanColor package was developed at the `Instrument Development Group 
+The OceanColor package was developed at the `Instrument Development Group
 <https://idg.ucsd.edu>`_ of `Scripps Institution of Oceanography
 <https://scripps.ucsd.edu>`_ in support for the `California Underwater Glider
 Network <https://spraydata.ucsd.edu/projects/CUGN/>`_ operations, which is

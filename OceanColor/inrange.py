@@ -8,7 +8,8 @@ import logging
 import threading, queue
 import os
 import time
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -30,7 +31,7 @@ except:
     module_logger.info("Missing package loky. Falling back to threading.")
 
 
-class InRange(object):
+class InRange:
     """Search and fetch Ocean Color pixels within range of given waypoints
 
     The satellite files are scanned in parallel in the background and checked
@@ -130,7 +131,16 @@ class InRange(object):
         parent = threading.current_thread()
         self.worker = threading.Thread(
             target=scanner,
-            args=(self.queue, parent, self.npes, track, sensor, dtype, dt_tol, dL_tol),
+            args=(
+                self.queue,
+                parent,
+                self.npes,
+                track,
+                sensor,
+                dtype,
+                dt_tol,
+                dL_tol,
+            ),
         )
         self.logger.debug("Starting scanner worker.")
         self.worker.start()
@@ -140,28 +150,30 @@ class InRange(object):
         for f in filenames:
             self.db.check(f)
 
-    def scanner_threading(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
+    def scanner_threading(
+        self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol
+    ):
         timeout = 900
-        self.logger.debug("Scanner, pid: {}".format(os.getpid()))
+        self.logger.debug(f"Scanner, pid: {os.getpid()}")
 
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
         self.logger.debug("Finished bloom filter")
 
         results = []
         for f in filenames:
-            self.logger.info("Scanning: {}".format(f))
+            self.logger.info(f"Scanning: {f}")
             if (len(results) >= npes) and parent.is_alive():
                 idx = [r.is_alive() for r in results]
                 if np.all(idx):
                     r = results.pop(0)
-                    self.logger.debug("Waiting for {}".format(r.name))
+                    self.logger.debug(f"Waiting for {r.name}")
                 else:
                     r = results.pop(idx.index(False))
                 r.join()
-                self.logger.debug("Finished {}".format(r.name))
-            self.logger.debug("Getting {}".format(f))
+                self.logger.debug(f"Finished {r.name}")
+            self.logger.debug(f"Getting {f}")
             ds = self.db[f].compute()
-            self.logger.debug("Launching search on {}".format(f))
+            self.logger.debug(f"Launching search on {f}")
             if not parent.is_alive():
                 return
             results.append(
@@ -174,23 +186,26 @@ class InRange(object):
             if not parent.is_alive():
                 return
             r.join()
-            self.logger.debug("Finished {}".format(r.name))
+            self.logger.debug(f"Finished {r.name}")
 
         self.logger.debug("Finished scanning all potential matchups.")
         queue.put("END")
 
-
-    def scanner(self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol):
+    def scanner(
+        self, queue, parent, npes, track, sensor, dtype, dt_tol, dL_tol
+    ):
         timeout = 900
-        self.logger.debug("Scanner, pid: {}".format(os.getpid()))
+        self.logger.debug(f"Scanner, pid: {os.getpid()}")
 
         filenames = bloom_filter(track, sensor, dtype, dt_tol, dL_tol)
         self.logger.debug("Finished bloom filter")
 
-        with ProcessPoolExecutor(max_workers=npes, timeout=timeout) as executor:
+        with ProcessPoolExecutor(
+            max_workers=npes, timeout=timeout
+        ) as executor:
             results = []
             for f in filenames:
-                self.logger.info("Scanning: {}".format(f))
+                self.logger.info(f"Scanning: {f}")
                 if (len(results) >= npes) and parent.is_alive():
                     idx = [r.done() for r in results]
                     while not np.any(idx):
@@ -199,21 +214,23 @@ class InRange(object):
                     tmp = results.pop(idx.index(True)).result()
                     self.logger.debug("Finished reading another file")
                     if not tmp.empty:
-                        self.logger.warning("Found {} matchs".format(len(tmp)))
+                        self.logger.warning(f"Found {len(tmp)} matchs")
                         queue.put(tmp)
-                self.logger.debug("Getting {}".format(f))
+                self.logger.debug(f"Getting {f}")
                 ds = self.db[f].compute()
                 if not parent.is_alive():
                     return
                 self.logger.debug("Submitting a new inrange process")
-                results.append(executor.submit(matchup, track, ds, dL_tol, dt_tol))
+                results.append(
+                    executor.submit(matchup, track, ds, dL_tol, dt_tol)
+                )
 
             for tmp in (r.result(timeout) for r in results):
                 if not parent.is_alive():
                     return
                 self.logger.debug("Finished reading another file")
                 if not tmp.empty:
-                    self.logger.warning("Found {} matchs".format(len(tmp)))
+                    self.logger.warning(f"Found {len(tmp)} matchs")
                     queue.put(tmp)
 
         self.logger.debug("Finished scanning all potential matchups.")
@@ -284,7 +301,7 @@ def matchup(track, ds, dL_tol: float, dt_tol, queue=None):
         )
         queue.put(output)
     else:
-        module_logger.info("No matchups from {}".format(ds.product_name))
+        module_logger.info(f"No matchups from {ds.product_name}")
 
 
 def matchup_L2(track, ds, dL_tol: float, dt_tol):
@@ -320,13 +337,25 @@ def matchup_L2(track, ds, dL_tol: float, dt_tol):
     matchup : Search a dataset for pixels within a range
     matchup_L3m : Search an L3m dataset for pixels within a range
     """
-    assert ds.processing_level == "L2", "matchup_L2() requires L2 satellite data"
+    assert (
+        ds.processing_level == "L2"
+    ), "matchup_L2() requires L2 satellite data"
     output = pd.DataFrame()
 
     # Removing the Zulu part of the date definition. Better double
     #   check if it is UTC and then remove the tz.
-    time_coverage_start = pd.to_datetime(ds.time_coverage_start.replace("Z", "",))
-    time_coverage_end = pd.to_datetime(ds.time_coverage_end.replace("Z", "",))
+    time_coverage_start = pd.to_datetime(
+        ds.time_coverage_start.replace(
+            "Z",
+            "",
+        )
+    )
+    time_coverage_end = pd.to_datetime(
+        ds.time_coverage_end.replace(
+            "Z",
+            "",
+        )
+    )
 
     idx = (track.time >= (time_coverage_start - dt_tol)) & (
         track.time <= (time_coverage_end + dt_tol)
@@ -354,7 +383,8 @@ def matchup_L2(track, ds, dL_tol: float, dt_tol):
     # Otherwise do the precise distance estimate to handle the day line.
     if (lon_start > -180) and (lon_end < 180):
         idx &= (ds.lon >= (subset.lon.min() - lon_tol)) & (
-            ds.lon <= (subset.lon.max() + lon_tol))
+            ds.lon <= (subset.lon.max() + lon_tol)
+        )
         if not idx.any():
             return output
 
@@ -477,8 +507,18 @@ def matchup_L3m(track, ds, dL_tol: float, dt_tol):
 
     # Removing the Zulu part of the date definition. Better double
     #   check if it is UTC and then remove the tz.
-    time_coverage_start = pd.to_datetime(ds.time_coverage_start.replace("Z", "",))
-    time_coverage_end = pd.to_datetime(ds.time_coverage_end.replace("Z", "",))
+    time_coverage_start = pd.to_datetime(
+        ds.time_coverage_start.replace(
+            "Z",
+            "",
+        )
+    )
+    time_coverage_end = pd.to_datetime(
+        ds.time_coverage_end.replace(
+            "Z",
+            "",
+        )
+    )
 
     time_reference = (
         time_coverage_start + (time_coverage_end - time_coverage_start) / 2.0
@@ -498,7 +538,9 @@ def matchup_L3m(track, ds, dL_tol: float, dt_tol):
     Lon, Lat = np.meshgrid(ds.lon[:], ds.lat[:])
 
     varnames = [
-        v for v in ds.variables.keys() if ds.variables[v].dims == ("lat", "lon")
+        v
+        for v in ds.variables.keys()
+        if ds.variables[v].dims == ("lat", "lon")
     ]
     ds = ds[varnames]
 
@@ -507,7 +549,9 @@ def matchup_L3m(track, ds, dL_tol: float, dt_tol):
     # Maybe filter
     for i, p in subset.iterrows():
         # Only sat. Chl within a certain distance.
-        dL = g.inv(Lon, Lat, np.ones(Lon.shape) * p.lon, np.ones(Lat.shape) * p.lat)[2]
+        dL = g.inv(
+            Lon, Lat, np.ones(Lon.shape) * p.lon, np.ones(Lat.shape) * p.lat
+        )[2]
         idx = dL <= dL_tol
         tmp = {
             "waypoint_id": i,
